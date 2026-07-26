@@ -20,8 +20,8 @@ export function Login() {
     setError('');
     setLoading(true);
 
-    // Development bypass
-    if (email === 'admin@barbearia.com' && password === 'admin123') {
+    // Admin bypass
+    if (email === 'tonybarbearia321@gmail.com' && password === 'barbertony890#') {
       loginMock(email);
       navigate('/admin');
       return;
@@ -59,12 +59,7 @@ export function Login() {
         )}
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 mb-4">
-            <p className="text-sm text-orange-400 font-medium mb-1">Acesso de Teste (Desenvolvimento):</p>
-            <p className="text-xs text-neutral-400">Email: admin@barbearia.com</p>
-            <p className="text-xs text-neutral-400">Senha: admin123</p>
-          </div>
-
+          {/* Removed login hints */}
           <div>
             <label className="block text-sm font-medium text-neutral-400 mb-2">E-mail</label>
             <div className="relative">
@@ -77,7 +72,7 @@ export function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
-                placeholder="admin@barbearia.com"
+                placeholder="Seu e-mail"
               />
             </div>
           </div>
