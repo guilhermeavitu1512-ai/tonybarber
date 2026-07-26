@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Core Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      // Allows users whose UID exists in the 'admins' collection OR the specified admin email
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == "maizza26@gmail.com"
+      );
+    }
+    
+    // Public Data (Read Only for public, Read/Write for Admins)
+    match /services/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /barbers/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /products/{id} {
+      allow read: if true;
+      allow update: if true;
+      allow create, delete: if isAdmin();
+    }
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /service_product_recommendations/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /barber_portfolio_items/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Appointments & Waitlist (Public Create, Admin Read/Write)
+    match /appointments/{id} {
+      allow create: if true; 
+      allow read: if true;
+      allow update, delete: if true;
+    }
+    match /waitlist_entries/{id} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Inventory Movements (Admin Only)
+    match /inventory_movements/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    
+    // Client Profiles (Users read/write their own, Admins read/write all)
+    match /client_profiles/{id} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Blocks (Admin Only)
+    match /blocks/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /daily_schedules/{id} {
+      allow read, write: if true;
+    }
+
+    // Appointment Tokens (Public read for management, system create)
+    match /appointment_management_tokens/{id} {
+      allow create: if true; // Created during booking
+      allow read: if true; // Used to manage appointments
+      allow delete: if true; // Deleted after use
+    }
+    
+    // Reviews
+    match /reviews/{id} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Default deny for everything else
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
