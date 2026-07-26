@@ -5,9 +5,8 @@ import { Scissors, Users, CalendarDays, Loader2, Database, DollarSign, TrendingU
 import { Service, Barber, Appointment } from '../../types';
 import { motion } from 'motion/react';
 import { releaseProductsForAppointment, commitProductSale } from '../../lib/inventoryLogic';
-
 import { normalizePhoneForWhatsApp, formatWhatsAppMessage } from '../../lib/whatsapp';
-
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 const statusLabels: Record<string, string> = {
   pending_confirmation: 'Aguardando',
   confirmed: 'Confirmado',
@@ -92,6 +91,8 @@ export function AdminDashboard() {
       });
       
       setAppointments(appts);
+      setServices(servicesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Service)));
+      setBarbers(barbersSnap.docs.map(d => ({ id: d.id, ...d.data() } as Barber)));
       
       const waitlistEntries = waitlistSnap.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistEntry));
       waitlistEntries.sort((a, b) => {
@@ -293,6 +294,38 @@ export function AdminDashboard() {
     }
   }
 
+  // --- Gráficos (Computados dinamicamente) ---
+  const last7Days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return d.toLocaleDateString('pt-BR');
+  }).reverse();
+
+  const revenueData = last7Days.map(dateStr => {
+    const dayAppts = appointments.filter(a => 
+      a.status === 'completed' && 
+      new Date(a.startTime).toLocaleDateString('pt-BR') === dateStr
+    );
+    const total = dayAppts.reduce((sum, a) => sum + (a.totalPrice || 0), 0);
+    return { date: dateStr.substring(0, 5), value: total }; // Ex: "26/07"
+  });
+
+  const serviceCounts: Record<string, number> = {};
+  appointments.forEach(a => {
+     if(a.status === 'completed' || a.status === 'confirmed') {
+        serviceCounts[a.serviceId] = (serviceCounts[a.serviceId] || 0) + 1;
+     }
+  });
+  const pieColors = ['#f97316', '#3b82f6', '#10b981', '#6366f1', '#ec4899'];
+  const popularServicesData = Object.keys(serviceCounts).map((id, index) => {
+     const s = services.find(srv => srv.id === id);
+     return {
+        name: s?.name || 'Desconhecido',
+        value: serviceCounts[id],
+        color: pieColors[index % pieColors.length]
+     };
+  }).sort((a,b) => b.value - a.value).slice(0, 5); // top 5
+
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
@@ -345,6 +378,66 @@ export function AdminDashboard() {
             </div>
           </motion.div>
           
+          {/* Gráficos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+            {/* Faturamento Últimos 7 dias */}
+            <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-neutral-400" />
+                Faturamento (Últimos 7 dias)
+              </h2>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                    <XAxis dataKey="date" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => \`R$\${val}\`} />
+                    <Tooltip 
+                      cursor={{fill: '#222'}} 
+                      contentStyle={{backgroundColor: '#111', borderColor: '#333', borderRadius: '8px'}}
+                      formatter={(val: number) => [\`R$ \${val.toFixed(2)}\`, 'Faturamento']}
+                    />
+                    <Bar dataKey="value" fill="#f97316" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Serviços mais populares */}
+            <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Scissors className="w-5 h-5 text-neutral-400" />
+                Top Serviços
+              </h2>
+              <div className="h-64 w-full flex items-center justify-center">
+                {popularServicesData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={popularServicesData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={({name, percent}) => \`\${name} (\${(percent * 100).toFixed(0)}%)\`}
+                      >
+                        {popularServicesData.map((entry, index) => (
+                          <Cell key={\`cell-\${index}\`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{backgroundColor: '#111', borderColor: '#333', borderRadius: '8px'}}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-neutral-500 text-sm">Nenhum dado suficiente.</div>
+                )}
+              </div>
+            </div>
+          </div>
           
           {appointments.filter(a => !a.whatsapp_confirmation_status || a.whatsapp_confirmation_status === 'not_sent').length > 0 && (
           <>
