@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
@@ -20,19 +20,26 @@ export function Login() {
     setError('');
     setLoading(true);
 
-    // Admin bypass
     const trimmedEmail = email.trim();
-    if (trimmedEmail === 'tonybarbearia321@gmail.com' && password === 'barbertony890#') {
-      loginMock(trimmedEmail);
-      navigate('/admin');
-      return;
-    }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, trimmedEmail, password);
       navigate('/admin');
     } catch (err: any) {
       console.error(err);
+      
+      // Auto-register admin if it doesn't exist in Firebase yet
+      if (trimmedEmail === 'tonybarbearia321@gmail.com' && password === 'barbertony890#') {
+        try {
+          // If login failed because the user isn't registered, create them now.
+          await createUserWithEmailAndPassword(auth, trimmedEmail, password);
+          navigate('/admin');
+          return;
+        } catch (createErr) {
+          console.error('Failed to create admin:', createErr);
+        }
+      }
+      
       setError('Credenciais inválidas. Tente novamente.');
     } finally {
       setLoading(false);
