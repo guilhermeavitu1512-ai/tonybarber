@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, writeBatch, updateDoc, orderBy, query } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Scissors, Users, CalendarDays, Loader2, Database, DollarSign, TrendingUp, AlertCircle, CheckCircle2, Filter } from 'lucide-react';
+import { Scissors, Users, CalendarDays, Loader2, Database, DollarSign, TrendingUp, AlertCircle, CheckCircle2, Filter, ArrowUp, ArrowDown } from 'lucide-react';
 import { Service, Barber, Appointment, Product } from '../../types';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { AnimatedNumber } from '../../components/ui/AnimatedNumber';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { releaseProductsForAppointment, commitProductSale } from '../../lib/inventoryLogic';
 import { normalizePhoneForWhatsApp, formatWhatsAppMessage } from '../../lib/whatsapp';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
@@ -12,9 +14,9 @@ const statusLabels: Record<string, string> = {
   confirmed: 'Confirmado',
   cancellation_requested: 'Cancel. Solicitado',
   on_the_way: 'A Caminho',
-  completed: 'Concluído',
+  completed: 'ConcluÃ­do',
   cancelled: 'Cancelado',
-  no_show: 'Não Compareceu'
+  no_show: 'NÃ£o Compareceu'
 };
 
 const statusColors: Record<string, string> = {
@@ -40,6 +42,7 @@ export interface WaitlistEntry {
 
 export function AdminDashboard() {
   const [stats, setStats] = useState({ services: 0, barbers: 0, appointments: 0, expectedRevenue: 0, realizedRevenue: 0, avgTicket: 0, missingRate: 0, upsellRevenue: 0 });
+  const [prevStats, setPrevStats] = useState({ services: 0, barbers: 0, appointments: 0, expectedRevenue: 0, realizedRevenue: 0, avgTicket: 0, missingRate: 0, upsellRevenue: 0 });
   const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month' | 'all'>('all');
   const [products, setProducts] = useState<Product[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -91,70 +94,116 @@ export function AdminDashboard() {
   
 
   
-  const filteredAppointments = React.useMemo(() => {
+  const { filteredAppointments, prevFilteredAppointments } = React.useMemo(() => {
     const now = new Date();
     let startDate = new Date(0);
+    let prevStartDate = new Date(0);
+    let prevEndDate = new Date(now.getFullYear() + 10, 0, 1);
+
     if (timeFilter === 'today') {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      prevStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      prevEndDate = startDate;
     } else if (timeFilter === 'week') {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+      prevStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
+      prevEndDate = startDate;
     } else if (timeFilter === 'month') {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      prevStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      prevEndDate = startDate;
     }
-    return appointments.filter(a => new Date(a.startTime) >= startDate);
+
+    const filtered = appointments.filter(a => new Date(a.startTime) >= startDate);
+    const prevFiltered = appointments.filter(a => {
+       const d = new Date(a.startTime);
+       return d >= prevStartDate && d < prevEndDate;
+    });
+
+    return { filteredAppointments: filtered, prevFilteredAppointments: prevFiltered };
   }, [appointments, timeFilter]);
 
   React.useEffect(() => {
-    let expectedRevenue = 0;
-    let realizedRevenue = 0;
-    let completedPaidCount = 0;
-    let noShowCount = 0;
-    let totalFinished = 0;
-    let upsellRevenue = 0;
+    function calcStats(appts: Appointment[]) {
+       let expectedRevenue = 0;
+       let realizedRevenue = 0;
+       let completedPaidCount = 0;
+       let noShowCount = 0;
+       let totalFinished = 0;
+       let upsellRevenue = 0;
 
-    filteredAppointments.forEach(app => {
-      const isPaid = app.paymentStatus === 'paid';
-      const isConfirmed = app.status === 'confirmed';
-      const isCompleted = app.status === 'completed';
-      const isNoShow = app.status === 'no_show';
-      const total = app.totalPrice || 0;
+       appts.forEach(app => {
+         const isPaid = app.paymentStatus === 'paid';
+         const isConfirmed = app.status === 'confirmed';
+         const isCompleted = app.status === 'completed';
+         const isNoShow = app.status === 'no_show';
+         const total = app.totalPrice || 0;
 
-      if (isCompleted || isNoShow) totalFinished++;
-      if (isNoShow) noShowCount++;
+         if (isCompleted || isNoShow) totalFinished++;
+         if (isNoShow) noShowCount++;
 
-      // Receita Prevista
-      if (isConfirmed) {
-        expectedRevenue += total;
-      }
+         if (isConfirmed) expectedRevenue += total;
+         if (isPaid && (isCompleted || isNoShow)) {
+           realizedRevenue += total;
+           completedPaidCount++;
+           if (app.productIds && app.productIds.length > 0) {
+             let pPrice = 0;
+             app.productIds.forEach(pid => {
+               const p = products.find(prod => prod.id === pid);
+               if (p) pPrice += p.price;
+             });
+             upsellRevenue += pPrice;
+           }
+         }
+       });
 
-      // Receita Realizada
-      if (isPaid && (isCompleted || isNoShow)) {
-        realizedRevenue += total;
-        completedPaidCount++;
-        
-        // Upsell
-        if (app.productIds && app.productIds.length > 0) {
-          let pPrice = 0;
-          app.productIds.forEach(pid => {
-            const p = products.find(prod => prod.id === pid);
-            if (p) pPrice += p.price;
-          });
-          upsellRevenue += pPrice;
-        }
-      }
-    });
+       return {
+         services: services.length,
+         barbers: barbers.length,
+         appointments: appts.length,
+         expectedRevenue,
+         realizedRevenue,
+         avgTicket: completedPaidCount > 0 ? realizedRevenue / completedPaidCount : 0,
+         missingRate: totalFinished > 0 ? (noShowCount / totalFinished) * 100 : 0,
+         upsellRevenue
+       };
+    }
 
-    setStats({
-      services: services.length,
-      barbers: barbers.length,
-      appointments: filteredAppointments.length,
-      expectedRevenue,
-      realizedRevenue,
-      avgTicket: completedPaidCount > 0 ? realizedRevenue / completedPaidCount : 0,
-      missingRate: totalFinished > 0 ? (noShowCount / totalFinished) * 100 : 0,
-      upsellRevenue
-    });
-  }, [filteredAppointments, products, barbers, services]);
+    setStats(calcStats(filteredAppointments));
+    setPrevStats(calcStats(prevFilteredAppointments));
+  }, [filteredAppointments, prevFilteredAppointments, products, barbers, services]);
+
+  function TrendIndicator({ current, prev, isInverse = false }: { current: number, prev: number, isInverse?: boolean }) {
+     if (timeFilter === 'all' || prev === 0) return null;
+     const diff = current - prev;
+     if (diff === 0) return null;
+     const percent = (diff / prev) * 100;
+     const isPositive = diff > 0;
+     const isGood = isInverse ? !isPositive : isPositive;
+     const color = isGood ? 'text-green-500' : 'text-red-500';
+     const Icon = isPositive ? ArrowUp : ArrowDown;
+
+     return (
+       <div className={`flex items-center text-xs font-medium ${color} mt-2`}>
+         <Icon className="w-3 h-3 mr-1" />
+         <AnimatedNumber value={Math.abs(percent)} decimals={1} suffix="%" /> 
+         <span className="text-neutral-500 ml-1 font-normal">vs ant.</span>
+       </div>
+     );
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20, filter: 'blur(4px)' },
+    show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.4 } }
+  };
 
   const handleOpenWhatsApp = async (appt: Appointment) => {
      const phone = normalizePhoneForWhatsApp(appt.customerPhone);
@@ -166,7 +215,7 @@ export function AdminDashboard() {
      // Note: we don't have barbers and services in AdminDashboard state directly unless we load them, but in the previous step the user didn't request adding them to AdminDashboard. Wait, they are requested to be shown in the UI "Profissional: [NOME]". But AdminDashboard currently doesn't fetch barbers/services in its list. Let's just use the ID or load them.
      // Actually, let's just make it generic if we don't have it, or fetch it.
      
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} — ${locationData.reference}\n${locationData.city} — ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nÂº ${locationData.number} â€” ${locationData.reference}\n${locationData.city} â€” ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'EndereÃ§o nÃ£o configurado';
      
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
@@ -186,7 +235,7 @@ export function AdminDashboard() {
         appt.customerName,
         appt.id.substring(0,6).toUpperCase(),
         barber?.name || 'Barbeiro',
-        service?.name || 'Serviço',
+        service?.name || 'ServiÃ§o',
         startDate.toLocaleDateString('pt-BR'),
         startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -221,7 +270,7 @@ export function AdminDashboard() {
   };
   
   const handleCopyMessage = (appt: Appointment) => {
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} — ${locationData.reference}\n${locationData.city} — ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nÂº ${locationData.number} â€” ${locationData.reference}\n${locationData.city} â€” ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'EndereÃ§o nÃ£o configurado';
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
      
@@ -240,7 +289,7 @@ export function AdminDashboard() {
         appt.customerName,
         appt.id.substring(0,6).toUpperCase(),
         barber?.name || 'Barbeiro',
-        service?.name || 'Serviço',
+        service?.name || 'ServiÃ§o',
         startDate.toLocaleDateString('pt-BR'),
         startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -278,7 +327,7 @@ export function AdminDashboard() {
       const updates: any = { paymentStatus: newPaymentStatus };
       let newStatus = appt?.status;
 
-      // Se marcou como pago, e ainda estava pendente ou confirmado, avança para concluído
+      // Se marcou como pago, e ainda estava pendente ou confirmado, avanÃ§a para concluÃ­do
       if (newPaymentStatus === 'paid' && appt && (appt.status === 'pending_confirmation' || appt.status === 'confirmed')) {
         updates.status = 'completed';
         newStatus = 'completed';
@@ -305,7 +354,7 @@ export function AdminDashboard() {
       // Seed Services
       const svc1Ref = doc(collection(db, 'services'));
       batch.set(svc1Ref, {
-        name: 'Corte Clássico',
+        name: 'Corte ClÃ¡ssico',
         durationMinutes: 45,
         price: 60,
         barberIds: [tonyRef.id, emersonRef.id, tiagoRef.id], 
@@ -333,21 +382,21 @@ export function AdminDashboard() {
 
       batch.set(tonyRef, {
         name: 'Tony Barber',
-        specialties: ['Corte Clássico', 'Barba Terapia'],
+        specialties: ['Corte ClÃ¡ssico', 'Barba Terapia'],
         schedule,
         isActive: true,
         photoUrl: ''
       });
       batch.set(emersonRef, {
         name: 'Emerson Barber',
-        specialties: ['Corte Clássico', 'Barba Terapia'],
+        specialties: ['Corte ClÃ¡ssico', 'Barba Terapia'],
         schedule,
         isActive: true,
         photoUrl: ''
       });
       batch.set(tiagoRef, {
-        name: 'Tiago Gonçalves',
-        specialties: ['Corte Clássico'],
+        name: 'Tiago GonÃ§alves',
+        specialties: ['Corte ClÃ¡ssico'],
         schedule,
         isActive: true,
         photoUrl: ''
@@ -364,7 +413,7 @@ export function AdminDashboard() {
     }
   }
 
-  // --- Gráficos (Computados dinamicamente) ---
+  // --- GrÃ¡ficos (Computados dinamicamente) ---
   const last7Days = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - i);
@@ -414,79 +463,90 @@ export function AdminDashboard() {
         <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
           <button onClick={() => setTimeFilter('today')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'today' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Hoje</button>
           <button onClick={() => setTimeFilter('week')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'week' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>7 Dias</button>
-          <button onClick={() => setTimeFilter('month')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'month' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Este Mês</button>
+          <button onClick={() => setTimeFilter('month')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'month' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Este MÃªs</button>
           <button onClick={() => setTimeFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'all' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Tudo</button>
         </div>
       </div>
       
       {loading ? (
-        <div className="flex justify-center p-12">
-          <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 mt-4">
+             {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+             <Skeleton className="h-64 w-full" />
+             <Skeleton className="h-64 w-full" />
+          </div>
         </div>
       ) : (
         <>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
+          <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
                   <DollarSign className="w-5 h-5" />
                 </div>
                 <p className="text-neutral-400 font-medium text-sm">Receita Prevista</p>
               </div>
-              <h2 className="text-2xl font-bold text-neutral-300">R$ {stats.expectedRevenue.toFixed(2)}</h2>
+              <h2 className="text-2xl font-bold text-neutral-300"><AnimatedNumber value={stats.expectedRevenue} decimals={2} prefix="R$ " /></h2>
+              <TrendIndicator current={stats.expectedRevenue} prev={prevStats.expectedRevenue} />
               <p className="text-xs text-neutral-500 mt-2">Agendamentos confirmados</p>
-            </div>
+            </motion.div>
             
-            <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
+            <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
                   <DollarSign className="w-5 h-5" />
                 </div>
                 <p className="text-neutral-400 font-medium text-sm">Receita Realizada</p>
               </div>
-              <h2 className="text-2xl font-bold text-green-400">R$ {stats.realizedRevenue.toFixed(2)}</h2>
+              <h2 className="text-2xl font-bold text-green-400"><AnimatedNumber value={stats.realizedRevenue} decimals={2} prefix="R$ " /></h2>
+              <TrendIndicator current={stats.realizedRevenue} prev={prevStats.realizedRevenue} />
               <p className="text-xs text-neutral-500 mt-2">Inclui R$ {stats.upsellRevenue.toFixed(2)} de upsell (produtos)</p>
-            </div>
+            </motion.div>
             
-            <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
+            <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <p className="text-neutral-400 font-medium text-sm">Ticket Médio (Realizado)</p>
               </div>
-              <h2 className="text-2xl font-bold">R$ {stats.avgTicket.toFixed(2)}</h2>
+              <h2 className="text-2xl font-bold"><AnimatedNumber value={stats.avgTicket} decimals={2} prefix="R$ " /></h2>
+              <TrendIndicator current={stats.avgTicket} prev={prevStats.avgTicket} />
               <p className="text-xs text-neutral-500 mt-2">Por atendimento concluído e pago</p>
-            </div>
+            </motion.div>
             
-            <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
+            <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center">
                   <AlertCircle className="w-5 h-5" />
                 </div>
                 <p className="text-neutral-400 font-medium">Taxa de Faltas</p>
               </div>
-              <h2 className="text-3xl font-bold">{stats.missingRate.toFixed(1)}%</h2>
-            </div>
+              <h2 className="text-3xl font-bold"><AnimatedNumber value={stats.missingRate} decimals={1} suffix="%" /></h2>
+              <TrendIndicator current={stats.missingRate} prev={prevStats.missingRate} isInverse={true} />
+            </motion.div>
 
-            <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
+            <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center">
                   <CalendarDays className="w-5 h-5" />
                 </div>
                 <p className="text-neutral-400 font-medium">Agendamentos</p>
               </div>
-              <h2 className="text-3xl font-bold">{stats.appointments}</h2>
-            </div>
+              <h2 className="text-3xl font-bold"><AnimatedNumber value={stats.appointments} /></h2>
+              <TrendIndicator current={stats.appointments} prev={prevStats.appointments} />
+            </motion.div>
           </motion.div>
           
-          {/* Gráficos */}
+          {/* GrÃ¡ficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-            {/* Faturamento Últimos 7 dias */}
+            {/* Faturamento Ãšltimos 7 dias */}
             <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-neutral-400" />
-                Faturamento (Últimos 7 dias)
+                Faturamento (Ãšltimos 7 dias)
               </h2>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -505,11 +565,11 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            {/* Serviços mais populares */}
+            {/* ServiÃ§os mais populares */}
             <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                 <Scissors className="w-5 h-5 text-neutral-400" />
-                Top Serviços
+                Top ServiÃ§os
               </h2>
               <div className="h-64 w-full flex items-center justify-center">
                 {revenueByServiceData.length > 0 ? (
@@ -570,7 +630,7 @@ export function AdminDashboard() {
           
           {appointments.filter(a => !a.whatsapp_confirmation_status || a.whatsapp_confirmation_status === 'not_sent').length > 0 && (
           <>
-             <h2 className="text-xl font-bold mb-4 text-orange-500">Confirmações pendentes (WhatsApp)</h2>
+             <h2 className="text-xl font-bold mb-4 text-orange-500">ConfirmaÃ§Ãµes pendentes (WhatsApp)</h2>
              <div className="bg-[#111] border border-orange-500/30 rounded-2xl overflow-hidden mb-8 p-4">
                 <div className="flex flex-col gap-3">
                    {appointments.filter(a => !a.whatsapp_confirmation_status || a.whatsapp_confirmation_status === 'not_sent').map(appt => (
@@ -580,7 +640,7 @@ export function AdminDashboard() {
                             <div className="text-sm text-neutral-400">{appt.customerPhone}</div>
                          </div>
                          <div>
-                            <div className="text-sm text-neutral-300">{new Date(appt.startTime).toLocaleDateString('pt-BR')} às {new Date(appt.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                            <div className="text-sm text-neutral-300">{new Date(appt.startTime).toLocaleDateString('pt-BR')} Ã s {new Date(appt.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
                             <div className="text-xs text-neutral-500">{services.find(s => s.id === appt.serviceId)?.name} com {barbers.find(b => b.id === appt.barberId)?.name}</div>
                          </div>
                          <div className="flex items-center gap-2">
@@ -594,7 +654,7 @@ export function AdminDashboard() {
              </div>
           </>
           )}
-          <h2 className="text-xl font-bold mb-4">Próximos Agendamentos</h2>
+          <h2 className="text-xl font-bold mb-4">PrÃ³ximos Agendamentos</h2>
           <div className="bg-[#111] border border-neutral-800 rounded-2xl overflow-hidden mb-12">
              <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -668,9 +728,9 @@ export function AdminDashboard() {
                      <tr>
                         <th className="px-6 py-4 font-medium text-neutral-400">Data</th>
                         <th className="px-6 py-4 font-medium text-neutral-400">Cliente</th>
-                        <th className="px-6 py-4 font-medium text-neutral-400">Preferência de Horário</th>
+                        <th className="px-6 py-4 font-medium text-neutral-400">PreferÃªncia de HorÃ¡rio</th>
                         <th className="px-6 py-4 font-medium text-neutral-400">Status</th>
-                        <th className="px-6 py-4 font-medium text-neutral-400 text-right">Ações</th>
+                        <th className="px-6 py-4 font-medium text-neutral-400 text-right">AÃ§Ãµes</th>
                      </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800">
@@ -716,7 +776,7 @@ export function AdminDashboard() {
                                       </button>
                                       <button 
                                          onClick={async () => {
-                                            if(confirm('Cancelar esta solicitação?')) {
+                                            if(confirm('Cancelar esta solicitaÃ§Ã£o?')) {
                                                await updateDoc(doc(db, 'waitlist_entries', entry.id), { status: 'cancelled' });
                                                loadData();
                                             }
@@ -742,10 +802,10 @@ export function AdminDashboard() {
       <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <Database className="w-5 h-5 text-neutral-400" />
-          Configuração Inicial
+          ConfiguraÃ§Ã£o Inicial
         </h2>
         <p className="text-neutral-500 mb-6 max-w-2xl">
-          Se o sistema estiver vazio, você pode popular o banco de dados com alguns dados de exemplo (serviços e barbeiros) para testar o fluxo de agendamento no site.
+          Se o sistema estiver vazio, vocÃª pode popular o banco de dados com alguns dados de exemplo (serviÃ§os e barbeiros) para testar o fluxo de agendamento no site.
         </p>
         <button
           onClick={seedDatabase}
