@@ -1,7 +1,9 @@
 "use client";
+import { Renderer, Program, Mesh, Triangle } from 'ogl';
 import { useEffect, useRef } from 'react';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+import './LineWaves.css';
+
 interface LineWavesProps {
   speed?: number;
   innerLineCount?: number;
@@ -16,287 +18,268 @@ interface LineWavesProps {
   color3?: string;
   enableMouseInteraction?: boolean;
   mouseInfluence?: number;
-  className?: string;
+  /** Override the container's inline style (e.g. opacity per section) */
   style?: React.CSSProperties;
+  className?: string;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function hexToRgb(hex: string): [number, number, number] {
-  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return r
-    ? [parseInt(r[1], 16) / 255, parseInt(r[2], 16) / 255, parseInt(r[3], 16) / 255]
-    : [1, 0.35, 0];
+function hexToVec3(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  return [
+    parseInt(h.slice(0, 2), 16) / 255,
+    parseInt(h.slice(2, 4), 16) / 255,
+    parseInt(h.slice(4, 6), 16) / 255
+  ];
 }
 
-function compileShader(gl: WebGLRenderingContext, type: number, src: string): WebGLShader {
-  const s = gl.createShader(type)!;
-  gl.shaderSource(s, src);
-  gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-    throw new Error(gl.getShaderInfoLog(s) ?? 'Shader compile error');
-  }
-  return s;
+const vertexShader = `
+attribute vec2 uv;
+attribute vec2 position;
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position, 0, 1);
 }
-
-// ─── Shaders ─────────────────────────────────────────────────────────────────
-const VERT = /* glsl */`
-  attribute vec2 position;
-  void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
-  }
 `;
 
-const FRAG = /* glsl */`
-  precision highp float;
+const fragmentShader = `
+precision highp float;
 
-  uniform float uTime;
-  uniform vec2  uResolution;
-  uniform vec2  uMouse;
-  uniform float uSpeed;
-  uniform float uTotalLines;
-  uniform float uWarpIntensity;
-  uniform float uRotation;
-  uniform float uEdgeFadeWidth;
-  uniform float uColorCycleSpeed;
-  uniform float uBrightness;
-  uniform vec3  uColor1;
-  uniform vec3  uColor2;
-  uniform vec3  uColor3;
-  uniform float uMouseInfluence;
-  uniform int   uEnableMouse;
+uniform float uTime;
+uniform vec3 uResolution;
+uniform float uSpeed;
+uniform float uInnerLines;
+uniform float uOuterLines;
+uniform float uWarpIntensity;
+uniform float uRotation;
+uniform float uEdgeFadeWidth;
+uniform float uColorCycleSpeed;
+uniform float uBrightness;
+uniform vec3 uColor1;
+uniform vec3 uColor2;
+uniform vec3 uColor3;
+uniform vec2 uMouse;
+uniform float uMouseInfluence;
+uniform bool uEnableMouse;
 
-  #define PI 3.14159265358979323846
+#define HALF_PI 1.5707963
 
-  vec3 triColor(float t) {
-    t = fract(t);
-    if (t < 0.333) return mix(uColor1, uColor2, t * 3.0);
-    if (t < 0.667) return mix(uColor2, uColor3, (t - 0.333) * 3.0);
-    return mix(uColor3, uColor1, (t - 0.667) * 3.0);
+float hashF(float n) {
+  return fract(sin(n * 127.1) * 43758.5453123);
+}
+
+float smoothNoise(float x) {
+  float i = floor(x);
+  float f = fract(x);
+  float u = f * f * (3.0 - 2.0 * f);
+  return mix(hashF(i), hashF(i + 1.0), u);
+}
+
+float displaceA(float coord, float t) {
+  float result = sin(coord * 2.123) * 0.2;
+  result += sin(coord * 3.234 + t * 4.345) * 0.1;
+  result += sin(coord * 0.589 + t * 0.934) * 0.5;
+  return result;
+}
+
+float displaceB(float coord, float t) {
+  float result = sin(coord * 1.345) * 0.3;
+  result += sin(coord * 2.734 + t * 3.345) * 0.2;
+  result += sin(coord * 0.189 + t * 0.934) * 0.3;
+  return result;
+}
+
+vec2 rotate2D(vec2 p, float angle) {
+  float c = cos(angle);
+  float s = sin(angle);
+  return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+}
+
+void main() {
+  vec2 coords = gl_FragCoord.xy / uResolution.xy;
+  coords = coords * 2.0 - 1.0;
+  coords = rotate2D(coords, uRotation);
+
+  float halfT = uTime * uSpeed * 0.5;
+  float fullT = uTime * uSpeed;
+
+  float mouseWarp = 0.0;
+  if (uEnableMouse) {
+    vec2 mPos = rotate2D(uMouse * 2.0 - 1.0, uRotation);
+    float mDist = length(coords - mPos);
+    mouseWarp = uMouseInfluence * exp(-mDist * mDist * 4.0);
   }
 
-  void main() {
-    vec2 fragUv   = gl_FragCoord.xy / uResolution;   // original UV (for edge fade)
-    vec2 uv       = fragUv;
+  float warpAx = coords.x + displaceA(coords.y, halfT) * uWarpIntensity + mouseWarp;
+  float warpAy = coords.y - displaceA(coords.x * cos(fullT) * 1.235, halfT) * uWarpIntensity;
+  float warpBx = coords.x + displaceB(coords.y, halfT) * uWarpIntensity + mouseWarp;
+  float warpBy = coords.y - displaceB(coords.x * sin(fullT) * 1.235, halfT) * uWarpIntensity;
 
-    // Mouse warp (in UV space)
-    if (uEnableMouse == 1) {
-      vec2  toMouse = uMouse - uv;
-      float d       = length(toMouse);
-      float warp    = uMouseInfluence * exp(-d * 5.5) * 0.06;
-      uv += normalize(toMouse + 0.0001) * warp;
-    }
+  vec2 fieldA = vec2(warpAx, warpAy);
+  vec2 fieldB = vec2(warpBx, warpBy);
+  vec2 blended = mix(fieldA, fieldB, mix(fieldA, fieldB, 0.5));
 
-    // Rotation around centre
-    float  angle = uRotation * PI / 180.0;
-    vec2   rel   = uv - 0.5;
-    float  ca    = cos(angle), sa = sin(angle);
-    rel  = vec2(rel.x * ca - rel.y * sa, rel.x * sa + rel.y * ca);
-    uv   = rel + 0.5;
+  float fadeTop = smoothstep(uEdgeFadeWidth, uEdgeFadeWidth + 0.4, blended.y);
+  float fadeBottom = smoothstep(-uEdgeFadeWidth, -(uEdgeFadeWidth + 0.4), blended.y);
+  float vMask = 1.0 - max(fadeTop, fadeBottom);
 
-    vec3  color = vec3(0.0);
-    float t     = uTime * uSpeed;
+  float tileCount = mix(uOuterLines, uInnerLines, vMask);
+  float scaledY = blended.y * tileCount;
+  float nY = smoothNoise(abs(scaledY));
 
-    // Draw lines
-    for (float i = 0.0; i < 70.0; i++) {
-      if (i >= uTotalLines) break;
+  float ridge = pow(
+    step(abs(nY - blended.x) * 2.0, HALF_PI) * cos(2.0 * (nY - blended.x)),
+    5.0
+  );
 
-      float frac = (i + 0.5) / uTotalLines;
-
-      // Organic multi-sine wave
-      float wave =
-        sin(uv.x * 7.3  + t       + i * 0.71) * 0.38 +
-        sin(uv.x * 3.9  + t * 1.4 + i * 0.43) * 0.22 +
-        sin(uv.x * 2.0  + t * 0.6 + i * 0.97) * 0.14 +
-        sin(uv.x * 14.7 + t * 1.9 + i * 1.20) * 0.08;
-
-      wave *= uWarpIntensity * 0.075;
-
-      float lineY = frac + wave;
-      float dist  = abs(uv.y - lineY);
-
-      // Soft gaussian-ish line
-      float k    = 0.0032;
-      float glow = exp(-(dist * dist) / (k * k));
-
-      float colorT = frac + t * uColorCycleSpeed * 0.018;
-      color += glow * triColor(colorT) * uBrightness;
-    }
-
-    // Edge fade (use original fragUv so fade is axis-aligned, not rotated)
-    float fx = smoothstep(0.0, uEdgeFadeWidth, fragUv.x) *
-               smoothstep(1.0, 1.0 - uEdgeFadeWidth, fragUv.x);
-    float fy = smoothstep(0.0, uEdgeFadeWidth, fragUv.y) *
-               smoothstep(1.0, 1.0 - uEdgeFadeWidth, fragUv.y);
-    color *= fx * fy;
-
-    gl_FragColor = vec4(color, 1.0);
+  float lines = 0.0;
+  for (float i = 1.0; i < 3.0; i += 1.0) {
+    lines += pow(max(fract(scaledY), fract(-scaledY)), i * 2.0);
   }
+
+  float pattern = vMask * lines;
+
+  float cycleT = fullT * uColorCycleSpeed;
+  float rChannel = (pattern + lines * ridge) * (cos(blended.y + cycleT * 0.234) * 0.5 + 1.0);
+  float gChannel = (pattern + vMask * ridge) * (sin(blended.x + cycleT * 1.745) * 0.5 + 1.0);
+  float bChannel = (pattern + lines * ridge) * (cos(blended.x + cycleT * 0.534) * 0.5 + 1.0);
+
+  vec3 col = (rChannel * uColor1 + gChannel * uColor2 + bChannel * uColor3) * uBrightness;
+  float alpha = clamp(length(col), 0.0, 1.0);
+
+  gl_FragColor = vec4(col, alpha);
+}
 `;
 
-// ─── Component ───────────────────────────────────────────────────────────────
 export function LineWaves({
-  speed             = 0.18,
-  innerLineCount    = 28,
-  outerLineCount    = 34,
-  warpIntensity     = 0.7,
-  rotation          = -35,
-  edgeFadeWidth     = 0.15,
-  colorCycleSpeed   = 0.5,
-  brightness        = 0.08,
-  color1            = '#ff5a00',
-  color2            = '#ff7a00',
-  color3            = '#ff9a3c',
-  enableMouseInteraction = false,
-  mouseInfluence    = 0.7,
-  className,
+  speed = 0.3,
+  innerLineCount = 32.0,
+  outerLineCount = 36.0,
+  warpIntensity = 1.0,
+  rotation = -45,
+  edgeFadeWidth = 0.0,
+  colorCycleSpeed = 1.0,
+  brightness = 0.2,
+  color1 = '#ffffff',
+  color2 = '#ffffff',
+  color3 = '#ffffff',
+  enableMouseInteraction = true,
+  mouseInfluence = 2.0,
   style,
+  className,
 }: LineWavesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef       = useRef<number>(0);
-  const mouseRef     = useRef<[number, number]>([0.5, 0.5]);
 
   useEffect(() => {
     // Respect prefers-reduced-motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    if (!containerRef.current) return;
     const container = containerRef.current;
-    if (!container) return;
+    const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+    const gl = renderer.gl;
+    gl.clearColor(0, 0, 0, 0);
 
-    // Canvas setup
-    const canvas = document.createElement('canvas');
-    canvas.style.cssText = 'display:block;width:100%;height:100%;';
-    container.appendChild(canvas);
+    let program: Program;
+    let currentMouse = [0.5, 0.5];
+    let targetMouse = [0.5, 0.5];
 
-    const gl = canvas.getContext('webgl', { alpha: true, antialias: false, powerPreference: 'low-power' });
-    if (!gl) { container.removeChild(canvas); return; }
-
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    // Resize
-    let dpr = Math.min(window.devicePixelRatio, 2);
-    function resize() {
-      const w = container!.clientWidth;
-      const h = container!.clientHeight;
-      canvas.width  = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      gl!.viewport(0, 0, canvas.width, canvas.height);
-    }
-    resize();
-
-    const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(container);
-
-    // Compile program
-    const vs = compileShader(gl, gl.VERTEX_SHADER,   VERT);
-    const fs = compileShader(gl, gl.FRAGMENT_SHADER, FRAG);
-    const program = gl.createProgram()!;
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    gl.useProgram(program);
-
-    // Fullscreen triangle strip quad
-    const verts  = new Float32Array([-1, -1,  1, -1,  -1, 1,  1, 1]);
-    const buf    = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
-    const posLoc = gl.getAttribLocation(program, 'position');
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-
-    // Uniform locations
-    const u = (n: string) => gl.getUniformLocation(program, n);
-    const locs = {
-      uTime:             u('uTime'),
-      uResolution:       u('uResolution'),
-      uMouse:            u('uMouse'),
-      uSpeed:            u('uSpeed'),
-      uTotalLines:       u('uTotalLines'),
-      uWarpIntensity:    u('uWarpIntensity'),
-      uRotation:         u('uRotation'),
-      uEdgeFadeWidth:    u('uEdgeFadeWidth'),
-      uColorCycleSpeed:  u('uColorCycleSpeed'),
-      uBrightness:       u('uBrightness'),
-      uColor1:           u('uColor1'),
-      uColor2:           u('uColor2'),
-      uColor3:           u('uColor3'),
-      uMouseInfluence:   u('uMouseInfluence'),
-      uEnableMouse:      u('uEnableMouse'),
-    };
-
-    // Mobile: reduce line count for performance
-    const isMobile     = window.innerWidth < 768;
-    const factor       = isMobile ? 0.55 : 1;
-    const totalLines   = Math.floor((innerLineCount + outerLineCount) * factor);
-
-    const [r1, g1, b1] = hexToRgb(color1);
-    const [r2, g2, b2] = hexToRgb(color2);
-    const [r3, g3, b3] = hexToRgb(color3);
-
-    gl.uniform1f(locs.uSpeed,            speed);
-    gl.uniform1f(locs.uTotalLines,       totalLines);
-    gl.uniform1f(locs.uWarpIntensity,    warpIntensity);
-    gl.uniform1f(locs.uRotation,         rotation);
-    gl.uniform1f(locs.uEdgeFadeWidth,    edgeFadeWidth);
-    gl.uniform1f(locs.uColorCycleSpeed,  colorCycleSpeed);
-    gl.uniform1f(locs.uBrightness,       brightness);
-    gl.uniform3f(locs.uColor1,           r1, g1, b1);
-    gl.uniform3f(locs.uColor2,           r2, g2, b2);
-    gl.uniform3f(locs.uColor3,           r3, g3, b3);
-    gl.uniform1f(locs.uMouseInfluence,   mouseInfluence);
-    gl.uniform1i(locs.uEnableMouse,      enableMouseInteraction ? 1 : 0);
-
-    // Mouse tracking
-    function onMouseMove(e: MouseEvent) {
-      const rect = container!.getBoundingClientRect();
-      mouseRef.current = [
+    function handleMouseMove(e: MouseEvent) {
+      const rect = (gl.canvas as HTMLCanvasElement).getBoundingClientRect();
+      targetMouse = [
         (e.clientX - rect.left) / rect.width,
-        1.0 - (e.clientY - rect.top) / rect.height,
+        1.0 - (e.clientY - rect.top) / rect.height
       ];
     }
-    if (enableMouseInteraction) container.addEventListener('mousemove', onMouseMove);
 
-    // Animation loop
-    const startTime = performance.now();
-    function frame() {
-      rafRef.current = requestAnimationFrame(frame);
-      const elapsed  = (performance.now() - startTime) * 0.001;
-
-      gl!.uniform1f(locs.uTime,    elapsed);
-      gl!.uniform2f(locs.uResolution, canvas.width, canvas.height);
-      gl!.uniform2f(locs.uMouse, mouseRef.current[0], mouseRef.current[1]);
-
-      gl!.clearColor(0, 0, 0, 0);
-      gl!.clear(gl!.COLOR_BUFFER_BIT);
-      gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
+    function handleMouseLeave() {
+      targetMouse = [0.5, 0.5];
     }
-    frame();
+
+    function resize() {
+      renderer.setSize(container.offsetWidth, container.offsetHeight);
+      if (program) {
+        program.uniforms.uResolution.value = [
+          (gl.canvas as HTMLCanvasElement).width,
+          (gl.canvas as HTMLCanvasElement).height,
+          (gl.canvas as HTMLCanvasElement).width / (gl.canvas as HTMLCanvasElement).height
+        ];
+      }
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const geometry = new Triangle(gl);
+    const rotationRad = (rotation * Math.PI) / 180;
+
+    program = new Program(gl, {
+      vertex: vertexShader,
+      fragment: fragmentShader,
+      uniforms: {
+        uTime:           { value: 0 },
+        uResolution:     { value: [(gl.canvas as HTMLCanvasElement).width, (gl.canvas as HTMLCanvasElement).height, (gl.canvas as HTMLCanvasElement).width / (gl.canvas as HTMLCanvasElement).height] },
+        uSpeed:          { value: speed },
+        uInnerLines:     { value: innerLineCount },
+        uOuterLines:     { value: outerLineCount },
+        uWarpIntensity:  { value: warpIntensity },
+        uRotation:       { value: rotationRad },
+        uEdgeFadeWidth:  { value: edgeFadeWidth },
+        uColorCycleSpeed:{ value: colorCycleSpeed },
+        uBrightness:     { value: brightness },
+        uColor1:         { value: hexToVec3(color1) },
+        uColor2:         { value: hexToVec3(color2) },
+        uColor3:         { value: hexToVec3(color3) },
+        uMouse:          { value: new Float32Array([0.5, 0.5]) },
+        uMouseInfluence: { value: mouseInfluence },
+        uEnableMouse:    { value: enableMouseInteraction }
+      }
+    });
+
+    const mesh = new Mesh(gl, { geometry, program });
+    container.appendChild(gl.canvas);
+
+    if (enableMouseInteraction) {
+      (gl.canvas as HTMLCanvasElement).addEventListener('mousemove', handleMouseMove);
+      (gl.canvas as HTMLCanvasElement).addEventListener('mouseleave', handleMouseLeave);
+    }
+
+    let animationFrameId: number;
+
+    function update(time: number) {
+      animationFrameId = requestAnimationFrame(update);
+      program.uniforms.uTime.value = time * 0.001;
+
+      if (enableMouseInteraction) {
+        currentMouse[0] += 0.05 * (targetMouse[0] - currentMouse[0]);
+        currentMouse[1] += 0.05 * (targetMouse[1] - currentMouse[1]);
+        program.uniforms.uMouse.value[0] = currentMouse[0];
+        program.uniforms.uMouse.value[1] = currentMouse[1];
+      } else {
+        program.uniforms.uMouse.value[0] = 0.5;
+        program.uniforms.uMouse.value[1] = 0.5;
+      }
+
+      renderer.render({ scene: mesh });
+    }
+    animationFrameId = requestAnimationFrame(update);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
-      resizeObserver.disconnect();
-      if (enableMouseInteraction) container.removeEventListener('mousemove', onMouseMove);
-      gl.deleteProgram(program);
-      gl.deleteBuffer(buf);
-      if (container.contains(canvas)) container.removeChild(canvas);
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resize);
+      if (enableMouseInteraction) {
+        (gl.canvas as HTMLCanvasElement).removeEventListener('mousemove', handleMouseMove);
+        (gl.canvas as HTMLCanvasElement).removeEventListener('mouseleave', handleMouseLeave);
+      }
+      if (container.contains(gl.canvas)) container.removeChild(gl.canvas);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [speed, innerLineCount, outerLineCount, warpIntensity, rotation, edgeFadeWidth, colorCycleSpeed, brightness, color1, color2, color3, enableMouseInteraction, mouseInfluence]);
 
   return (
     <div
       ref={containerRef}
-      className={className}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-        pointerEvents: 'none',
-        ...style,
-      }}
+      className={`line-waves-container${className ? ` ${className}` : ''}`}
+      style={style}
     />
   );
 }
