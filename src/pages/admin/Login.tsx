@@ -21,8 +21,9 @@ export function Login() {
     setLoading(true);
 
     // Admin bypass
-    if (email === 'tonybarbearia321@gmail.com' && password === 'barbertony890#') {
-      loginMock(email);
+    const trimmedEmail = email.trim();
+    if (trimmedEmail === 'tonybarbearia321@gmail.com' && password === 'barbertony890#') {
+      loginMock(trimmedEmail);
       navigate('/admin');
       return;
     }
