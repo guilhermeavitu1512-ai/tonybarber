@@ -345,32 +345,42 @@ export function AdminDashboard() {
 
   async function seedDatabase() {
     setSeeding(true);
+    const PROJECT = 'gen-lang-client-0254140623';
+    const DATABASE = 'ai-studio-5c2ed8fc-bae9-41d8-81c1-1806d0f17a5a';
+    const API_KEY = 'AIzaSyC0r3tXwA0G61IYyEOOGzOQuBqqLdwpjSE';
+    const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/${DATABASE}/documents`;
+
+    const mkId = () => Math.random().toString(36).substring(2, 15);
+
+    function toDoc(fields: Record<string, any>) {
+      const convert = (v: any): any => {
+        if (typeof v === 'string') return { stringValue: v };
+        if (typeof v === 'number') return { doubleValue: v };
+        if (typeof v === 'boolean') return { booleanValue: v };
+        if (Array.isArray(v)) return { arrayValue: { values: v.map(convert) } };
+        if (v && typeof v === 'object') return { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, val]) => [k, convert(val)])) } };
+        return { nullValue: null };
+      };
+      return { fields: Object.fromEntries(Object.entries(fields).map(([k, val]) => [k, convert(val)])) };
+    }
+
+    async function create(col: string, id: string, data: Record<string, any>) {
+      const res = await fetch(`${BASE}/${col}?documentId=${id}&key=${API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toDoc(data))
+      });
+      if (!res.ok) {
+        const e = await res.text();
+        throw new Error(`Falha ao criar ${col}/${id}: ${e}`);
+      }
+    }
+
     try {
-      const batch = writeBatch(db);
-      const tonyRef = doc(collection(db, 'barbers'));
-      const emersonRef = doc(collection(db, 'barbers'));
-      const tiagoRef = doc(collection(db, 'barbers'));
+      const tonyId = mkId(), emersonId = mkId(), tiagoId = mkId();
+      const svc1Id = mkId(), svc2Id = mkId();
 
-      // Seed Services
-      const svc1Ref = doc(collection(db, 'services'));
-      batch.set(svc1Ref, {
-        name: 'Corte Clássico',
-        durationMinutes: 45,
-        price: 60,
-        barberIds: [tonyRef.id, emersonRef.id, tiagoRef.id], 
-        isActive: true
-      });
-      
-      const svc2Ref = doc(collection(db, 'services'));
-      batch.set(svc2Ref, {
-        name: 'Barba Terapia',
-        durationMinutes: 30,
-        price: 40,
-        barberIds: [tonyRef.id, emersonRef.id],
-        isActive: true
-      });
-
-      const schedule = {
+      const schedule: Record<string, any> = {
         0: { isOpen: false, openTime: '09:00', closeTime: '18:00' },
         1: { isOpen: true, openTime: '09:00', closeTime: '19:00' },
         2: { isOpen: true, openTime: '09:00', closeTime: '19:00' },
@@ -380,38 +390,23 @@ export function AdminDashboard() {
         6: { isOpen: true, openTime: '09:00', closeTime: '18:00' },
       };
 
-      batch.set(tonyRef, {
-        name: 'Tony Barber',
-        specialties: ['Corte Clássico', 'Barba Terapia'],
-        schedule,
-        isActive: true,
-        photoUrl: ''
-      });
-      batch.set(emersonRef, {
-        name: 'Emerson Barber',
-        specialties: ['Corte Clássico', 'Barba Terapia'],
-        schedule,
-        isActive: true,
-        photoUrl: ''
-      });
-      batch.set(tiagoRef, {
-        name: 'Tiago Gonçalves',
-        specialties: ['Corte Clássico'],
-        schedule,
-        isActive: true,
-        photoUrl: ''
-      });
+      await create('barbers', tonyId, { name: 'Tony Barber', specialties: ['Corte Clássico', 'Barba Terapia'], schedule, isActive: true, photoUrl: '' });
+      await create('barbers', emersonId, { name: 'Emerson Barber', specialties: ['Corte Clássico', 'Barba Terapia'], schedule, isActive: true, photoUrl: '' });
+      await create('barbers', tiagoId, { name: 'Tiago Gonçalves', specialties: ['Corte Clássico'], schedule, isActive: true, photoUrl: '' });
+      await create('services', svc1Id, { name: 'Corte Clássico', durationMinutes: 45, price: 60, barberIds: [tonyId, emersonId, tiagoId], isActive: true });
+      await create('services', svc2Id, { name: 'Barba Terapia', durationMinutes: 30, price: 40, barberIds: [tonyId, emersonId], isActive: true });
 
-      await batch.commit();
       await loadData();
       alert('Dados de exemplo inseridos com sucesso!');
     } catch (err) {
       console.error(err);
-      alert('Erro ao inserir dados.');
+      alert('Erro ao inserir dados: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSeeding(false);
     }
   }
+
+
 
   // --- Gráficos (Computados dinamicamente) ---
   const last7Days = Array.from({ length: 7 }).map((_, i) => {
