@@ -1,14 +1,91 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { auth, db } from '../../lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, orderBy } from 'firebase/firestore';
-import { useAuth } from '../../contexts/AuthContext';
-import { ClientProfile, Appointment, Barber, Service } from '../../types';
-import { User, Clock, Scissors, Image as ImageIcon, ChevronRight, LogOut, CheckCircle, Loader2, Star } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { db } from '../../lib/firebase';
+import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';
+import { Service, Barber, Appointment } from '../../types';
+import {
+  User, Clock, Scissors, ChevronRight, Loader2, Star, Search,
+  Phone, Mail, AlertCircle, CheckCircle2, TrendingUp, Award, RefreshCw
+} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
 
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface StyleProfile {
+  lastAppointment: Appointment;
+  lastBarber: Barber | null;
+  lastService: Service | null;
+  preferredBarber: Barber | null;
+  topServices: { service: Service; count: number }[];
+  contact: string;
+}
+
+// ─── Firestore REST helpers ───────────────────────────────────────────────────
+const PROJECT  = 'gen-lang-client-0254140623';
+const DATABASE = 'ai-studio-5c2ed8fc-bae9-41d8-81c1-1806d0f17a5a';
+const API_KEY  = 'AIzaSyC0r3tXwA0G61IYyEOOGzOQuBqqLdwpjSE';
+const FS_BASE  = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/${DATABASE}/documents`;
+
+function fromFirestoreValue(v: any): any {
+  if (!v) return null;
+  if (v.stringValue  !== undefined) return v.stringValue;
+  if (v.integerValue !== undefined) return Number(v.integerValue);
+  if (v.doubleValue  !== undefined) return Number(v.doubleValue);
+  if (v.booleanValue !== undefined) return v.booleanValue;
+  if (v.nullValue    !== undefined) return null;
+  if (v.timestampValue !== undefined) return v.timestampValue;
+  if (v.arrayValue) return (v.arrayValue.values || []).map(fromFirestoreValue);
+  if (v.mapValue)   return Object.fromEntries(
+    Object.entries(v.mapValue.fields || {}).map(([k, val]) => [k, fromFirestoreValue(val)])
+  );
+  return null;
+}
+
+function docFromRest(d: any): any {
+  const id = d.name.split('/').pop();
+  const fields = Object.fromEntries(
+    Object.entries(d.fields || {}).map(([k, v]) => [k, fromFirestoreValue(v)])
+  );
+  return { id, ...fields };
+}
+
+async function runQuery(collection: string, field: string, value: string): Promise<any[]> {
+  const body = {
+    structuredQuery: {
+      from: [{ collectionId: collection }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: field },
+          op: 'EQUAL',
+          value: { stringValue: value }
+        }
+      }
+    }
+  };
+  const res = await fetch(`${FS_BASE}:runQuery?key=${API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const json: any[] = await res.json();
+  return json.filter(r => r.document).map(r => docFromRest(r.document));
+}
+
+// ─── Normalization ────────────────────────────────────────────────────────────
+function normalizePhone(raw: string): string {
+  return raw.replace(/[\s\-().+]/g, '');
+}
+
+function isEmail(input: string): boolean {
+  return input.includes('@');
+}
+
+// ─── Status helpers ───────────────────────────────────────────────────────────
+const ACTIVE_STATUSES = ['completed', 'confirmed', 'pending_confirmation', 'on_the_way'];
+const STATUS_PRIORITY: Record<string, number> = {
+  completed: 0, confirmed: 1, pending_confirmation: 2, on_the_way: 3,
+  cancellation_requested: 99, cancelled: 99, no_show: 99
+};
 
 const statusLabels: Record<string, string> = {
   pending_confirmation: 'Aguardando Confirmação',
@@ -21,322 +98,450 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  pending_confirmation: 'text-yellow-500',
-  confirmed: 'text-green-400',
-  cancellation_requested: 'text-red-400',
-  on_the_way: 'text-blue-400',
-  completed: 'text-neutral-500',
-  cancelled: 'text-red-500',
-  no_show: 'text-neutral-600'
+  pending_confirmation: 'text-yellow-400 bg-yellow-400/10',
+  confirmed: 'text-green-400 bg-green-400/10',
+  cancellation_requested: 'text-red-400 bg-red-400/10',
+  on_the_way: 'text-blue-400 bg-blue-400/10',
+  completed: 'text-emerald-400 bg-emerald-400/10',
+  cancelled: 'text-red-500 bg-red-500/10',
+  no_show: 'text-neutral-500 bg-neutral-500/10'
 };
 
+// ─── Component ────────────────────────────────────────────────────────────────
 export function MeuEstilo() {
-  const { user, loginMock, logout } = useAuth();
-  const [profile, setProfile] = useState<ClientProfile | null>(null);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState('');
-  
-
-    const [reviewingAppt, setReviewingAppt] = useState<Appointment | null>(null);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState('');
-  const [prefBarberName, setPrefBarberName] = useState('Não definido');
-  const [prefServiceName, setPrefServiceName] = useState('Não definido');
-  
-  const submitReview = async () => {
-    if (!reviewingAppt) return;
-    setLoading(true);
-    try {
-       await addDoc(collection(db, 'reviews'), {
-         appointmentId: reviewingAppt.id,
-         barberId: reviewingAppt.barberId,
-         customerName: reviewingAppt.customerName,
-         rating: reviewRating,
-         comment: reviewComment,
-         createdAt: new Date().toISOString()
-       });
-       await updateDoc(doc(db, 'appointments', reviewingAppt.id), { reviewed: true });
-       setAppointments(prev => prev.map(a => a.id === reviewingAppt.id ? { ...a, reviewed: true } : a));
-       setReviewingAppt(null);
-       setReviewRating(5);
-       setReviewComment('');
-    } catch (e) {
-       console.error(e);
-       alert("Erro ao enviar avaliação.");
-    } finally {
-       setLoading(false);
-    }
-  };
-
-  const updateAppointmentStatus = async (apptId: string, newStatus: string) => {
-    try {
-      await updateDoc(doc(db, 'appointments', apptId), { status: newStatus });
-      setAppointments(prev => prev.map(a => a.id === apptId ? { ...a, status: newStatus as any } : a));
-    } catch (e) {
-      console.error(e);
-      alert('Erro ao atualizar o agendamento.');
-    }
-  };
   const navigate = useNavigate();
 
+  // Search state
+  const [contact, setContact]   = useState('');
+  const [searchState, setSearchState] = useState<'idle' | 'loading' | 'found' | 'not_found'>('idle');
+  const [profile, setProfile]   = useState<StyleProfile | null>(null);
+  const [error, setError]       = useState('');
+
+  // Data for barber/service validation
+  const [barbers,  setBarbers]  = useState<Barber[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [dataReady, setDataReady] = useState(false);
+
+  // Load barbers and services on mount (public collections)
   useEffect(() => {
-    if (user) {
-      loadProfile(user.uid, user.email || '');
-    } else {
-      setLoading(false);
+    async function load() {
+      try {
+        const [bSnap, sSnap] = await Promise.all([
+          getDocs(query(collection(db, 'barbers'),  where('isActive', '==', true))),
+          getDocs(query(collection(db, 'services'), where('isActive', '==', true)))
+        ]);
+        setBarbers(bSnap.docs.map(d => ({ id: d.id, ...d.data() } as Barber)));
+        setServices(sSnap.docs.map(d => ({ id: d.id, ...d.data() } as Service)));
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setDataReady(true);
+      }
     }
-  }, [user]);
+    load();
+  }, []);
 
-  async function loadProfile(uid: string, userEmail: string) {
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = contact.trim();
+    if (!trimmed) return;
+
+    setError('');
+    setProfile(null);
+    setSearchState('loading');
+
     try {
-      const q = query(collection(db, 'client_profiles'), where('authUserId', '==', uid));
-      const snap = await getDocs(q);
-      
-      let currentProfile: ClientProfile;
-      if (snap.empty) {
-        // Look for appointments with this email to pre-fill
-        const apptsQuery = query(collection(db, 'appointments'), where('customerEmail', '==', userEmail));
-        const apptsSnap = await getDocs(apptsQuery);
-        let name = 'Cliente';
-        let phone = '';
-        if (!apptsSnap.empty) {
-          name = apptsSnap.docs[0].data().customerName;
-          phone = apptsSnap.docs[0].data().customerPhone;
+      let appointments: Appointment[] = [];
+
+      if (isEmail(trimmed)) {
+        const normalized = trimmed.toLowerCase();
+        appointments = await runQuery('appointments', 'customerEmail', normalized) as Appointment[];
+        // also try original case
+        if (appointments.length === 0 && normalized !== trimmed) {
+          appointments = await runQuery('appointments', 'customerEmail', trimmed) as Appointment[];
         }
-
-        const newProfile: ClientProfile = {
-          id: doc(collection(db, 'client_profiles')).id,
-          authUserId: uid,
-          fullName: name,
-          email: userEmail,
-          phone: phone,
-          marketingConsent: false,
-          reminderConsent: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        await setDoc(doc(db, 'client_profiles', newProfile.id), newProfile);
-        currentProfile = newProfile;
       } else {
-        currentProfile = { id: snap.docs[0].id, ...snap.docs[0].data() } as ClientProfile;
-      }
-      setProfile(currentProfile);
-
-      let bId = currentProfile.preferredBarberId;
-      let sId = currentProfile.preferredServiceId;
-
-      if (bId) {
-         const bDoc = await getDoc(doc(db, 'barbers', bId));
-         if (bDoc.exists()) setPrefBarberName(bDoc.data().name);
-      }
-      if (sId) {
-         const sDoc = await getDoc(doc(db, 'services', sId));
-         if (sDoc.exists()) setPrefServiceName(sDoc.data().name);
+        const normalized = normalizePhone(trimmed);
+        appointments = await runQuery('appointments', 'customerPhone', normalized) as Appointment[];
       }
 
-      // Load history
-      const apptQ = query(collection(db, 'appointments'), where('customerEmail', '==', userEmail));
-      const apptSnap = await getDocs(apptQ);
-      setAppointments(apptSnap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      
+      // Filter out cancelled
+      const active = appointments.filter(a =>
+        a.status !== 'cancelled' && a.status !== 'cancellation_requested'
+      );
+
+      if (active.length === 0) {
+        setSearchState('not_found');
+        return;
+      }
+
+      // Sort: completed first, then by date desc
+      active.sort((a, b) => {
+        const pA = STATUS_PRIORITY[a.status] ?? 99;
+        const pB = STATUS_PRIORITY[b.status] ?? 99;
+        if (pA !== pB) return pA - pB;
+        return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+      });
+
+      const best = active[0];
+
+      // Last barber & service
+      const lastBarber  = barbers.find(b  => b.id  === best.barberId)  || null;
+      const lastService = services.find(s => s.id === best.serviceId) || null;
+
+      // Preferred barber (most appearances in active appts)
+      const barberCount: Record<string, number> = {};
+      active.forEach(a => { barberCount[a.barberId] = (barberCount[a.barberId] || 0) + 1; });
+      const topBarberId = Object.entries(barberCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+      const preferredBarber = barbers.find(b => b.id === topBarberId) || null;
+
+      // Top services
+      const serviceCount: Record<string, number> = {};
+      active.forEach(a => { serviceCount[a.serviceId] = (serviceCount[a.serviceId] || 0) + 1; });
+      const topServices = Object.entries(serviceCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([id, count]) => ({ service: services.find(s => s.id === id)!, count }))
+        .filter(x => x.service);
+
+      setProfile({ lastAppointment: best, lastBarber, lastService, preferredBarber, topServices, contact: trimmed });
+      setSearchState('found');
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
+      setError('Erro ao buscar histórico. Tente novamente.');
+      setSearchState('idle');
     }
   }
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      window.localStorage.setItem('emailForSignIn', email);
-      loginMock(email);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  function handleRepeat() {
+    if (!profile) return;
+    const { lastBarber, lastService, contact } = profile;
+
+    // Validate both still active
+    const barberActive  = lastBarber  && barbers.find(b  => b.id  === lastBarber.id);
+    const serviceActive = lastService && services.find(s => s.id === lastService.id);
+
+    const params = new URLSearchParams();
+    if (barberActive)  params.set('barberId',  lastBarber!.id);
+    if (serviceActive) params.set('serviceId', lastService!.id);
+    if (isEmail(contact)) {
+      params.set('email', contact.toLowerCase());
+    } else {
+      params.set('phone', normalizePhone(contact));
     }
+
+    navigate(`/agendar?${params.toString()}`);
   }
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div>;
+  function reset() {
+    setSearchState('idle');
+    setProfile(null);
+    setContact('');
+    setError('');
   }
 
-  if (!user || !profile) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[#111] p-8 rounded-3xl border border-neutral-800 shadow-xl text-center">
-          <Logo className="w-16 h-16 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold mb-2">Meu Estilo</h1>
-          <p className="text-neutral-400 mb-8">
-            Acesse seu histórico, barbeiro preferido e agende seu corte habitual rapidamente.
-          </p>
-          
-            <form onSubmit={handleLogin} className="space-y-4 text-left">
-              <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Seu Email</label>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition-colors"
-                  placeholder="exemplo@email.com"
-                  required
-                />
-              </div>
-              <button 
-                type="submit"
-                disabled={loading}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium transition-colors flex justify-center items-center"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Acessar Meu Estilo'}
-              </button>
-            </form>
-          
-          <div className="mt-8 pt-6 border-t border-neutral-800">
-            <Link to="/agendar" className="text-neutral-500 hover:text-white transition-colors text-sm">
-              Voltar para Agendamento Comum
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const lastAppointment = appointments[0];
-
+  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
-      {reviewingAppt && (
-         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111] p-6 rounded-2xl border border-neutral-800 w-full max-w-md">
-               <h3 className="text-xl font-bold mb-4">Avalie seu atendimento</h3>
-               <p className="text-neutral-400 mb-6">Como foi sua experiência no dia {new Date(reviewingAppt.startTime).toLocaleDateString('pt-BR')}?</p>
-               
-               <div className="flex gap-2 justify-center mb-6">
-                  {[1,2,3,4,5].map(star => (
-                    <button key={star} onClick={() => setReviewRating(star)} className="p-1">
-                      <Star className={`w-8 h-8 ${star <= reviewRating ? 'text-orange-500 fill-orange-500' : 'text-neutral-600'}`} />
-                    </button>
-                  ))}
-               </div>
-
-               <textarea 
-                 value={reviewComment}
-                 onChange={(e) => setReviewComment(e.target.value)}
-                 className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-white mb-4 outline-none focus:border-orange-500 resize-none h-32"
-                 placeholder="Deixe um comentário (opcional)"
-               />
-
-               <div className="flex gap-2">
-                 <button onClick={() => setReviewingAppt(null)} className="flex-1 px-4 py-3 rounded-xl border border-neutral-800 hover:bg-neutral-800 transition-colors">Cancelar</button>
-                 <button onClick={submitReview} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-xl font-medium transition-colors">Enviar</button>
-               </div>
-            </div>
-         </div>
-      )}
+      {/* Header */}
       <header className="border-b border-neutral-800 sticky top-0 z-10 bg-[#0A0A0A]/90 backdrop-blur-md">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Logo className="w-8 h-8" />
             <span className="font-bold text-lg hidden sm:inline">Meu Estilo</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link to="/agendar" className="text-sm font-medium text-orange-500 hover:text-orange-400 transition-colors">
-              Novo Agendamento
-            </Link>
-            <button onClick={logout} className="text-neutral-500 hover:text-white">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
+          <Link to="/agendar" className="text-sm font-medium text-orange-500 hover:text-orange-400 transition-colors">
+            Novo Agendamento
+          </Link>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-neutral-900/80 to-neutral-900/40 p-6 sm:p-8 rounded-3xl border border-neutral-800">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Olá, {profile.fullName.split(' ')[0]}</h1>
-            <p className="text-neutral-400">Seja bem-vindo de volta ao seu espaço pessoal.</p>
-          </div>
-          <Link 
-            to={`/agendar?repeat=true`} 
-            className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl font-bold transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 text-center"
-          >
-            Agendar meu corte de sempre
-          </Link>
-        </motion.div>
+      <main className="max-w-3xl mx-auto px-4 py-10">
+        <AnimatePresence mode="wait">
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-orange-500" />
-                Histórico
-              </h2>
-              <div className="space-y-4">
-                {appointments.length === 0 ? (
-                  <div className="bg-[#111] p-6 rounded-2xl border border-neutral-800 text-center text-neutral-500">
-                    Você ainda não tem agendamentos.
-                  </div>
-                ) : (
-                  appointments.map((appt) => (
-                    <div key={appt.id} className="bg-[#111] p-5 rounded-2xl border border-neutral-800 hover:border-neutral-700 transition-colors">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <div className="font-bold text-lg mb-1">{new Date(appt.startTime).toLocaleDateString('pt-BR')} às {new Date(appt.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
-                          <div className="text-neutral-400 text-sm">Status: <span className={statusColors[appt.status]}>{statusLabels[appt.status]}</span></div>
-                        </div>
-                        <div className="text-right font-bold text-orange-500">
-                          R$ {appt.totalPrice?.toFixed(2) || '0.00'}
-                        </div>
+          {/* ── SEARCH FORM ── */}
+          {searchState === 'idle' && (
+            <motion.div
+              key="search"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -24 }}
+              className="flex flex-col items-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6">
+                <Scissors className="w-8 h-8 text-orange-500" />
+              </div>
+              <h1 className="text-3xl font-bold mb-2 text-center">Meu Estilo</h1>
+              <p className="text-neutral-400 text-center mb-10 max-w-sm">
+                Acesse seu histórico, barbeiro preferido e agende seu corte habitual com um clique.
+              </p>
+
+              <div className="w-full max-w-md bg-[#111] border border-neutral-800 rounded-3xl p-8">
+                <form onSubmit={handleSearch} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-400 mb-2">
+                      Seu e-mail ou telefone
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500">
+                        {isEmail(contact) ? <Mail className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
                       </div>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="px-3 py-1 bg-neutral-800 rounded-lg text-sm text-neutral-300">Serviço escolhido</span>
-                      </div>
-                      <Link 
-                        to={`/agendar?repeat=${appt.id}`}
-                        className="w-full block text-center py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-medium transition-colors"
-                      >
-                        Repetir este atendimento
-                      </Link>
+                      <input
+                        type="text"
+                        value={contact}
+                        onChange={e => setContact(e.target.value)}
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-orange-500 transition-colors placeholder-neutral-600"
+                        placeholder="exemplo@email.com ou (11) 99999-9999"
+                        required
+                        autoComplete="email"
+                      />
                     </div>
-                  ))
-                )}
-              </div>
-            </section>
-          </div>
+                    <p className="text-xs text-neutral-600 mt-2">
+                      Use o mesmo contato informado no último agendamento.
+                    </p>
+                  </div>
 
-          <div className="space-y-6">
-            <section className="bg-[#111] p-6 rounded-2xl border border-neutral-800">
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-orange-500" />
-                Preferências
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm text-neutral-500 mb-1">Barbeiro Preferido</div>
-                  <div className="font-medium bg-neutral-900 px-3 py-2 rounded-lg border border-neutral-800">{prefBarberName}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-neutral-500 mb-1">Serviço Frequente</div>
-                  <div className="font-medium bg-neutral-900 px-3 py-2 rounded-lg border border-neutral-800">{prefServiceName}</div>
-                </div>
-              </div>
-            </section>
+                  {error && (
+                    <div className="flex items-center gap-2 text-red-400 text-sm bg-red-400/10 px-4 py-3 rounded-xl">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      {error}
+                    </div>
+                  )}
 
-            <section className="bg-[#111] p-6 rounded-2xl border border-neutral-800">
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-orange-500" />
-                Fotos de Referência
-              </h2>
-              <div className="text-center text-sm text-neutral-500 py-4">
-                Em breve você poderá salvar suas referências aqui.
+                  <button
+                    type="submit"
+                    disabled={!contact.trim()}
+                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                  >
+                    <Search className="w-4 h-4" />
+                    Acessar Meu Estilo
+                  </button>
+                </form>
               </div>
-            </section>
-          </div>
-        </div>
+
+              <div className="mt-8">
+                <Link to="/" className="text-neutral-600 hover:text-neutral-400 transition-colors text-sm">
+                  ← Voltar para o início
+                </Link>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── LOADING ── */}
+          {searchState === 'loading' && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-24 gap-4"
+            >
+              <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+              <p className="text-neutral-400">Buscando seu histórico…</p>
+            </motion.div>
+          )}
+
+          {/* ── NOT FOUND ── */}
+          {searchState === 'not_found' && (
+            <motion.div
+              key="not_found"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -24 }}
+              className="flex flex-col items-center py-16 gap-6"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-neutral-800 flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-neutral-500" />
+              </div>
+              <div className="text-center">
+                <h2 className="text-xl font-bold mb-2">Nenhum histórico encontrado</h2>
+                <p className="text-neutral-400 max-w-sm">
+                  Não encontramos nenhum agendamento ativo com o contato informado. Verifique se digitou corretamente ou agende normalmente.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={reset}
+                  className="px-6 py-3 rounded-xl border border-neutral-700 hover:bg-neutral-800 transition-colors flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Tentar novamente
+                </button>
+                <Link
+                  to="/agendar"
+                  className="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors flex items-center gap-2"
+                >
+                  <Scissors className="w-4 h-4" />
+                  Agendar normalmente
+                </Link>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── FOUND ── */}
+          {searchState === 'found' && profile && (
+            <motion.div
+              key="found"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -24 }}
+              className="space-y-6"
+            >
+              {/* Greeting */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-orange-500/10 to-transparent border border-orange-500/20 rounded-3xl p-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 className="w-5 h-5 text-orange-500" />
+                    <span className="text-sm text-orange-400 font-medium">Histórico encontrado</span>
+                  </div>
+                  <h1 className="text-2xl font-bold">
+                    Olá, {profile.lastAppointment.customerName.split(' ')[0]}! 👋
+                  </h1>
+                  <p className="text-neutral-400 text-sm mt-1">
+                    Encontramos {profile.topServices.reduce((s, t) => s + t.count, 0)} atendimento(s) no seu histórico.
+                  </p>
+                </div>
+                <button
+                  onClick={handleRepeat}
+                  disabled={!profile.lastBarber || !profile.lastService}
+                  className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 flex items-center gap-2 justify-center"
+                >
+                  <Scissors className="w-4 h-4" />
+                  Agendar meu corte de sempre
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Last Appointment */}
+                <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6 space-y-4">
+                  <h2 className="font-bold flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-500" />
+                    Último Atendimento
+                  </h2>
+
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-xs text-neutral-500 mb-1">Data</div>
+                      <div className="font-medium">
+                        {new Date(profile.lastAppointment.startTime).toLocaleDateString('pt-BR', {
+                          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-neutral-500 mb-1">Status</div>
+                      <span className={`text-xs px-2.5 py-1 rounded-lg font-medium ${statusColors[profile.lastAppointment.status]}`}>
+                        {statusLabels[profile.lastAppointment.status]}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-neutral-500 mb-1">Serviço</div>
+                      <div className="font-medium flex items-center gap-2">
+                        <Scissors className="w-3.5 h-3.5 text-orange-500" />
+                        {profile.lastService?.name ?? <span className="text-neutral-500 italic">Serviço indisponível</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-neutral-500 mb-1">Barbeiro</div>
+                      <div className="font-medium flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-orange-500" />
+                        {profile.lastBarber?.name ?? <span className="text-neutral-500 italic">Barbeiro indisponível</span>}
+                      </div>
+                    </div>
+
+                    {profile.lastAppointment.totalPrice ? (
+                      <div>
+                        <div className="text-xs text-neutral-500 mb-1">Valor</div>
+                        <div className="font-bold text-orange-400">
+                          R$ {profile.lastAppointment.totalPrice.toFixed(2)}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {/* Preferences */}
+                <div className="space-y-4">
+                  {/* Preferred barber */}
+                  <div className="bg-[#111] border border-neutral-800 rounded-2xl p-5">
+                    <h2 className="font-bold flex items-center gap-2 mb-3">
+                      <Award className="w-4 h-4 text-orange-500" />
+                      Barbeiro Preferido
+                    </h2>
+                    {profile.preferredBarber ? (
+                      <div className="flex items-center gap-3 bg-neutral-900/60 rounded-xl px-4 py-3">
+                        <div className="w-9 h-9 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 font-bold text-sm">
+                          {profile.preferredBarber.name.charAt(0)}
+                        </div>
+                        <span className="font-medium">{profile.preferredBarber.name}</span>
+                      </div>
+                    ) : (
+                      <p className="text-neutral-500 text-sm">Não definido</p>
+                    )}
+                  </div>
+
+                  {/* Top services */}
+                  {profile.topServices.length > 0 && (
+                    <div className="bg-[#111] border border-neutral-800 rounded-2xl p-5">
+                      <h2 className="font-bold flex items-center gap-2 mb-3">
+                        <TrendingUp className="w-4 h-4 text-orange-500" />
+                        Serviços Mais Usados
+                      </h2>
+                      <div className="space-y-2">
+                        {profile.topServices.map(({ service, count }, i) => (
+                          <div key={service.id} className="flex items-center justify-between bg-neutral-900/60 rounded-xl px-4 py-2.5">
+                            <div className="flex items-center gap-2">
+                              {i === 0 && <Star className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />}
+                              <span className="text-sm font-medium">{service.name}</span>
+                            </div>
+                            <span className="text-xs text-neutral-500">{count}×</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Unavailability warning */}
+              {(!profile.lastBarber || !profile.lastService) && (
+                <div className="flex items-start gap-3 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-sm text-yellow-300">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span>
+                    {!profile.lastBarber && !profile.lastService
+                      ? 'O barbeiro e o serviço do seu último corte não estão mais disponíveis.'
+                      : !profile.lastBarber
+                      ? 'O barbeiro do seu último corte não está mais disponível.'
+                      : 'O serviço do seu último corte não está mais disponível.'}
+                    {' '}Você pode agendar normalmente escolhendo outro.
+                  </span>
+                </div>
+              )}
+
+              {/* Footer actions */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  onClick={reset}
+                  className="flex-1 px-4 py-3 rounded-xl border border-neutral-700 hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Buscar outro contato
+                </button>
+                <Link
+                  to="/agendar"
+                  className="flex-1 px-4 py-3 rounded-xl border border-neutral-700 hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  Novo agendamento
+                </Link>
+              </div>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </main>
     </div>
   );

@@ -225,11 +225,37 @@ export function BookingFlow() {
         setDbProducts(allProds);
         setProducts(allProds.filter(p => p.isActive));
 
-        // Handle repeat query param
+        // Handle repeat query param (legacy: ?repeat=apptId)
         const params = new URLSearchParams(location.search);
         const repeatVal = params.get('repeat');
         
-        if (repeatVal) {
+        // Handle new MeuEstilo direct params: ?barberId=X&serviceId=Y&email=Z&phone=W
+        const directBarberId  = params.get('barberId');
+        const directServiceId = params.get('serviceId');
+        const directEmail     = params.get('email');
+        const directPhone     = params.get('phone');
+
+        if (directBarberId || directServiceId) {
+          let foundBarber  = directBarberId  || null;
+          let foundService = directServiceId ? (loadedServices.find(s => s.id === directServiceId) || null) : null;
+
+          // Validate barber still active
+          if (foundBarber && !loadedBarbers.find(b => b.id === foundBarber)) foundBarber = null;
+
+          if (foundBarber)  setSelectedBarberId(foundBarber);
+          if (foundService) setSelectedService(foundService);
+
+          // Pre-fill customer contact info
+          if (directEmail || directPhone) {
+            setCustomer(prev => ({
+              ...prev,
+              email: directEmail || prev.email,
+              phone: directPhone || prev.phone,
+            }));
+          }
+
+          if (foundBarber && foundService) setStep(3);
+        } else if (repeatVal) {
           let foundBarber = null;
           let foundService = null;
           
