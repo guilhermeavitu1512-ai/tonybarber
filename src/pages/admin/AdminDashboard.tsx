@@ -215,7 +215,7 @@ export function AdminDashboard() {
      // Note: we don't have barbers and services in AdminDashboard state directly unless we load them, but in the previous step the user didn't request adding them to AdminDashboard. Wait, they are requested to be shown in the UI "Profissional: [NOME]". But AdminDashboard currently doesn't fetch barbers/services in its list. Let's just use the ID or load them.
      // Actually, let's just make it generic if we don't have it, or fetch it.
      
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} � ${locationData.reference}\n${locationData.city} � ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} — ${locationData.reference}\n${locationData.city} — ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
      
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
@@ -270,7 +270,7 @@ export function AdminDashboard() {
   };
   
   const handleCopyMessage = (appt: Appointment) => {
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} � ${locationData.reference}\n${locationData.city} � ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} — ${locationData.reference}\n${locationData.city} — ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
      
@@ -510,11 +510,11 @@ export function AdminDashboard() {
                 <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5" />
                 </div>
-                <p className="text-neutral-400 font-medium text-sm">Ticket M�dio (Realizado)</p>
+                <p className="text-neutral-400 font-medium text-sm">Ticket Médio (Realizado)</p>
               </div>
               <h2 className="text-2xl font-bold"><AnimatedNumber value={stats.avgTicket} decimals={2} prefix="R$ " /></h2>
               <TrendIndicator current={stats.avgTicket} prev={prevStats.avgTicket} />
-              <p className="text-xs text-neutral-500 mt-2">Por atendimento conclu�do e pago</p>
+              <p className="text-xs text-neutral-500 mt-2">Por atendimento concluído e pago</p>
             </motion.div>
             
             <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
