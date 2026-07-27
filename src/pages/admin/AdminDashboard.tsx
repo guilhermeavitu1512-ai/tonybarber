@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, writeBatch, updateDoc, orderBy, query } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Scissors, Users, CalendarDays, Loader2, Database, DollarSign, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Service, Barber, Appointment } from '../../types';
+import { Scissors, Users, CalendarDays, Loader2, Database, DollarSign, TrendingUp, AlertCircle, CheckCircle2, Filter } from 'lucide-react';
+import { Service, Barber, Appointment, Product } from '../../types';
 import { motion } from 'motion/react';
 import { releaseProductsForAppointment, commitProductSale } from '../../lib/inventoryLogic';
 import { normalizePhoneForWhatsApp, formatWhatsAppMessage } from '../../lib/whatsapp';
@@ -39,7 +39,9 @@ export interface WaitlistEntry {
 }
 
 export function AdminDashboard() {
-  const [stats, setStats] = useState({ services: 0, barbers: 0, appointments: 0, revenue: 0, avgTicket: 0, missingRate: 0 });
+  const [stats, setStats] = useState({ services: 0, barbers: 0, appointments: 0, expectedRevenue: 0, realizedRevenue: 0, avgTicket: 0, missingRate: 0, upsellRevenue: 0 });
+  const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month' | 'all'>('all');
+  const [products, setProducts] = useState<Product[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [locationData, setLocationData] = useState<any>(null);
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -55,40 +57,19 @@ export function AdminDashboard() {
   async function loadData() {
     setLoading(true);
     try {
-      const [servicesSnap, barbersSnap, apptsSnap, waitlistSnap] = await Promise.all([
+      const [servicesSnap, barbersSnap, apptsSnap, waitlistSnap, productsSnap] = await Promise.all([
         getDocs(collection(db, 'services')),
         getDocs(collection(db, 'barbers')),
         getDocs(query(collection(db, 'appointments'))),
-        getDocs(query(collection(db, 'waitlist_entries')))
+        getDocs(query(collection(db, 'waitlist_entries'))),
+        getDocs(collection(db, 'products'))
       ]);
       
       const appts = apptsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment));
       appts.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
       
-      let revenue = 0;
-      let completedCount = 0;
-      let noShowCount = 0;
-      let totalFinished = 0;
-      
-      appts.forEach(app => {
-        if (app.status === 'completed') {
-           completedCount++;
-           totalFinished++;
-           revenue += (app.totalPrice || 0);
-        } else if (app.status === 'no_show') {
-           noShowCount++;
-           totalFinished++;
-        }
-      });
-      
-      setStats({
-        services: servicesSnap.size,
-        barbers: barbersSnap.size,
-        appointments: appts.length,
-        revenue,
-        avgTicket: completedCount > 0 ? revenue / completedCount : 0,
-        missingRate: totalFinished > 0 ? (noShowCount / totalFinished) * 100 : 0
-      });
+      const loadedProducts = productsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
+      setProducts(loadedProducts);
       
       setAppointments(appts);
       setServices(servicesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Service)));
@@ -108,6 +89,72 @@ export function AdminDashboard() {
     }
   }
   
+
+  
+  const filteredAppointments = React.useMemo(() => {
+    const now = new Date();
+    let startDate = new Date(0);
+    if (timeFilter === 'today') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (timeFilter === 'week') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+    } else if (timeFilter === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    return appointments.filter(a => new Date(a.startTime) >= startDate);
+  }, [appointments, timeFilter]);
+
+  React.useEffect(() => {
+    let expectedRevenue = 0;
+    let realizedRevenue = 0;
+    let completedPaidCount = 0;
+    let noShowCount = 0;
+    let totalFinished = 0;
+    let upsellRevenue = 0;
+
+    filteredAppointments.forEach(app => {
+      const isPaid = app.paymentStatus === 'paid';
+      const isConfirmed = app.status === 'confirmed';
+      const isCompleted = app.status === 'completed';
+      const isNoShow = app.status === 'no_show';
+      const total = app.totalPrice || 0;
+
+      if (isCompleted || isNoShow) totalFinished++;
+      if (isNoShow) noShowCount++;
+
+      // Receita Prevista
+      if (isConfirmed) {
+        expectedRevenue += total;
+      }
+
+      // Receita Realizada
+      if (isPaid && (isCompleted || isNoShow)) {
+        realizedRevenue += total;
+        completedPaidCount++;
+        
+        // Upsell
+        if (app.productIds && app.productIds.length > 0) {
+          let pPrice = 0;
+          app.productIds.forEach(pid => {
+            const p = products.find(prod => prod.id === pid);
+            if (p) pPrice += p.price;
+          });
+          upsellRevenue += pPrice;
+        }
+      }
+    });
+
+    setStats({
+      services: services.length,
+      barbers: barbers.length,
+      appointments: filteredAppointments.length,
+      expectedRevenue,
+      realizedRevenue,
+      avgTicket: completedPaidCount > 0 ? realizedRevenue / completedPaidCount : 0,
+      missingRate: totalFinished > 0 ? (noShowCount / totalFinished) * 100 : 0,
+      upsellRevenue
+    });
+  }, [filteredAppointments, products, barbers, services]);
 
   const handleOpenWhatsApp = async (appt: Appointment) => {
      const phone = normalizePhoneForWhatsApp(appt.customerPhone);
@@ -224,6 +271,16 @@ export function AdminDashboard() {
     }
   }
 
+  
+  async function updatePaymentStatus(id: string, newPaymentStatus: string) {
+    try {
+      await updateDoc(doc(db, 'appointments', id), { paymentStatus: newPaymentStatus });
+      setAppointments(prev => prev.map(a => a.id === id ? { ...a, paymentStatus: newPaymentStatus as any } : a));
+    } catch (err) {
+      alert("Erro ao atualizar pagamento.");
+    }
+  }
+
   async function seedDatabase() {
     setSeeding(true);
     try {
@@ -302,33 +359,46 @@ export function AdminDashboard() {
   }).reverse();
 
   const revenueData = last7Days.map(dateStr => {
-    const dayAppts = appointments.filter(a => 
-      a.status === 'completed' && 
+    const dayAppts = filteredAppointments.filter(a => 
+      a.paymentStatus === 'paid' && (a.status === 'completed' || a.status === 'no_show') &&
       new Date(a.startTime).toLocaleDateString('pt-BR') === dateStr
     );
     const total = dayAppts.reduce((sum, a) => sum + (a.totalPrice || 0), 0);
-    return { date: dateStr.substring(0, 5), value: total }; // Ex: "26/07"
+    return { date: dateStr.substring(0, 5), value: total };
   });
 
-  const serviceCounts: Record<string, number> = {};
-  appointments.forEach(a => {
-     if(a.status === 'completed' || a.status === 'confirmed') {
-        serviceCounts[a.serviceId] = (serviceCounts[a.serviceId] || 0) + 1;
+  const serviceRevenueRecord: Record<string, number> = {};
+  const barberRevenueRecord: Record<string, number> = {};
+
+  filteredAppointments.forEach(a => {
+     if(a.paymentStatus === 'paid' && (a.status === 'completed' || a.status === 'no_show')) {
+        serviceRevenueRecord[a.serviceId] = (serviceRevenueRecord[a.serviceId] || 0) + (a.totalPrice || 0);
+        barberRevenueRecord[a.barberId] = (barberRevenueRecord[a.barberId] || 0) + (a.totalPrice || 0);
      }
   });
+
   const pieColors = ['#f97316', '#3b82f6', '#10b981', '#6366f1', '#ec4899'];
-  const popularServicesData = Object.keys(serviceCounts).map((id, index) => {
+  const revenueByServiceData = Object.keys(serviceRevenueRecord).map((id, index) => {
      const s = services.find(srv => srv.id === id);
-     return {
-        name: s?.name || 'Desconhecido',
-        value: serviceCounts[id],
-        color: pieColors[index % pieColors.length]
-     };
-  }).sort((a,b) => b.value - a.value).slice(0, 5); // top 5
+     return { name: s?.name || 'Desconhecido', value: serviceRevenueRecord[id], color: pieColors[index % pieColors.length] };
+  }).sort((a,b) => b.value - a.value).slice(0, 5);
+
+  const revenueByBarberData = Object.keys(barberRevenueRecord).map((id, index) => {
+     const b = barbers.find(barb => barb.id === id);
+     return { name: b?.name || 'Desconhecido', value: barberRevenueRecord[id], color: pieColors[index % pieColors.length] };
+  }).sort((a,b) => b.value - a.value);
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <h1 className="text-3xl font-bold">Painel Administrativo</h1>
+        <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
+          <button onClick={() => setTimeFilter('today')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'today' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Hoje</button>
+          <button onClick={() => setTimeFilter('week')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'week' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>7 Dias</button>
+          <button onClick={() => setTimeFilter('month')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'month' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Este Mês</button>
+          <button onClick={() => setTimeFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'all' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Tudo</button>
+        </div>
+      </div>
       
       {loading ? (
         <div className="flex justify-center p-12">
@@ -342,9 +412,21 @@ export function AdminDashboard() {
                 <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
                   <DollarSign className="w-5 h-5" />
                 </div>
-                <p className="text-neutral-400 font-medium">Faturamento</p>
+                <p className="text-neutral-400 font-medium text-sm">Receita Prevista</p>
               </div>
-              <h2 className="text-3xl font-bold">R$ {stats.revenue.toFixed(2)}</h2>
+              <h2 className="text-2xl font-bold text-neutral-300">R$ {stats.expectedRevenue.toFixed(2)}</h2>
+              <p className="text-xs text-neutral-500 mt-2">Agendamentos confirmados</p>
+            </div>
+            
+            <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <p className="text-neutral-400 font-medium text-sm">Receita Realizada</p>
+              </div>
+              <h2 className="text-2xl font-bold text-green-400">R$ {stats.realizedRevenue.toFixed(2)}</h2>
+              <p className="text-xs text-neutral-500 mt-2">Inclui R$ {stats.upsellRevenue.toFixed(2)} de upsell (produtos)</p>
             </div>
             
             <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
@@ -352,9 +434,10 @@ export function AdminDashboard() {
                 <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5" />
                 </div>
-                <p className="text-neutral-400 font-medium">Ticket Médio</p>
+                <p className="text-neutral-400 font-medium text-sm">Ticket Médio (Realizado)</p>
               </div>
-              <h2 className="text-3xl font-bold">R$ {stats.avgTicket.toFixed(2)}</h2>
+              <h2 className="text-2xl font-bold">R$ {stats.avgTicket.toFixed(2)}</h2>
+              <p className="text-xs text-neutral-500 mt-2">Por atendimento concluído e pago</p>
             </div>
             
             <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
@@ -410,11 +493,11 @@ export function AdminDashboard() {
                 Top Serviços
               </h2>
               <div className="h-64 w-full flex items-center justify-center">
-                {popularServicesData.length > 0 ? (
+                {revenueByServiceData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={popularServicesData}
+                        data={revenueByServiceData}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
@@ -423,7 +506,7 @@ export function AdminDashboard() {
                         dataKey="value"
                         label={({name, percent}) => `${name} (${(percent * 100).toFixed(0)}%)`}
                       >
-                        {popularServicesData.map((entry, index) => (
+                        {revenueByServiceData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -434,6 +517,33 @@ export function AdminDashboard() {
                   </ResponsiveContainer>
                 ) : (
                   <div className="text-neutral-500 text-sm">Nenhum dado suficiente.</div>
+                )}
+                        </div>
+            </div>
+
+            {/* Faturamento por Barbeiro */}
+            <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6 lg:col-span-2">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Users className="w-5 h-5 text-neutral-400" />
+                Faturamento por Profissional (Realizado)
+              </h2>
+              <div className="h-64 w-full">
+                {revenueByBarberData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={revenueByBarberData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                      <XAxis dataKey="name" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `R${val}`} />
+                      <Tooltip 
+                        cursor={{fill: '#222'}} 
+                        contentStyle={{backgroundColor: '#111', borderColor: '#333', borderRadius: '8px'}}
+                        formatter={(val: number) => [`R$ ${val.toFixed(2)}`, 'Faturamento']}
+                      />
+                      <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-neutral-500 text-sm">Nenhum dado suficiente.</div>
                 )}
               </div>
             </div>
@@ -475,11 +585,12 @@ export function AdminDashboard() {
                         <th className="px-6 py-4 font-medium text-neutral-400">Cliente</th>
                         <th className="px-6 py-4 font-medium text-neutral-400">Status</th>
                         <th className="px-6 py-4 font-medium text-neutral-400">Total</th>
-                        <th className="px-6 py-4 font-medium text-neutral-400 text-right">Ações</th>
+                        <th className="px-6 py-4 font-medium text-neutral-400 text-center">Pagamento</th>
+                        <th className="px-6 py-4 font-medium text-neutral-400 text-right">Status do Atendimento</th>
                      </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800">
-                     {appointments.map(appt => (
+                     {filteredAppointments.map(appt => (
                         <tr key={appt.id} className="hover:bg-neutral-900/50 transition-colors">
                            <td className="px-6 py-4">
                               <div className="font-medium text-white">{new Date(appt.startTime).toLocaleDateString('pt-BR')}</div>
@@ -496,6 +607,16 @@ export function AdminDashboard() {
                            </td>
                            <td className="px-6 py-4 text-orange-500 font-bold">
                               R$ {appt.totalPrice?.toFixed(2) || '0.00'}
+                           </td>
+                           <td className="px-6 py-4 text-center">
+                              <select 
+                                className={`text-sm rounded-lg px-3 py-1.5 font-medium outline-none transition-colors border ${appt.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}
+                                value={appt.paymentStatus || 'pending'}
+                                onChange={(e) => updatePaymentStatus(appt.id, e.target.value)}
+                              >
+                                <option value="pending" className="bg-neutral-900 text-white">Pendente</option>
+                                <option value="paid" className="bg-neutral-900 text-white">Pago</option>
+                              </select>
                            </td>
                            <td className="px-6 py-4 text-right">
                               <select 

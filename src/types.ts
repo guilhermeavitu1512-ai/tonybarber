@@ -56,6 +56,7 @@ export interface Appointment {
   startTime: string;
   endTime: string;
   status: AppointmentStatus;
+  paymentStatus?: 'pending' | 'paid';
   createdAt: string;
   productIds?: string[];
   totalPrice?: number;
