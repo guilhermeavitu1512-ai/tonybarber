@@ -274,8 +274,21 @@ export function AdminDashboard() {
   
   async function updatePaymentStatus(id: string, newPaymentStatus: string) {
     try {
-      await updateDoc(doc(db, 'appointments', id), { paymentStatus: newPaymentStatus });
-      setAppointments(prev => prev.map(a => a.id === id ? { ...a, paymentStatus: newPaymentStatus as any } : a));
+      const appt = appointments.find(a => a.id === id);
+      const updates: any = { paymentStatus: newPaymentStatus };
+      let newStatus = appt?.status;
+
+      // Se marcou como pago, e ainda estava pendente ou confirmado, avança para concluído
+      if (newPaymentStatus === 'paid' && appt && (appt.status === 'pending_confirmation' || appt.status === 'confirmed')) {
+        updates.status = 'completed';
+        newStatus = 'completed';
+      }
+
+      await updateDoc(doc(db, 'appointments', id), updates);
+      
+      setAppointments(prev => prev.map(a => 
+        a.id === id ? { ...a, paymentStatus: newPaymentStatus as any, status: newStatus as any } : a
+      ));
     } catch (err) {
       alert("Erro ao atualizar pagamento.");
     }
