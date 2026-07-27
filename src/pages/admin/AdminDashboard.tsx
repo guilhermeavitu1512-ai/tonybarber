@@ -368,16 +368,22 @@ export function AdminDashboard() {
   const last7Days = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    return d.toLocaleDateString('pt-BR');
+    return {
+       day: d.getDate(),
+       month: d.getMonth(),
+       year: d.getFullYear(),
+       label: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
+    };
   }).reverse();
 
-  const revenueData = last7Days.map(dateStr => {
-    const dayAppts = filteredAppointments.filter(a => 
-      a.paymentStatus === 'paid' && (a.status === 'completed' || a.status === 'no_show') &&
-      new Date(a.startTime).toLocaleDateString('pt-BR') === dateStr
-    );
+  const revenueData = last7Days.map(dayObj => {
+    const dayAppts = filteredAppointments.filter(a => {
+      if (!(a.paymentStatus === 'paid' && (a.status === 'completed' || a.status === 'no_show'))) return false;
+      const ad = new Date(a.startTime);
+      return ad.getDate() === dayObj.day && ad.getMonth() === dayObj.month && ad.getFullYear() === dayObj.year;
+    });
     const total = dayAppts.reduce((sum, a) => sum + (a.totalPrice || 0), 0);
-    return { date: dateStr.substring(0, 5), value: total };
+    return { date: dayObj.label, value: total };
   });
 
   const serviceRevenueRecord: Record<string, number> = {};
