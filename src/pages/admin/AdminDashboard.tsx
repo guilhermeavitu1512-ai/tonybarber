@@ -14,9 +14,9 @@ const statusLabels: Record<string, string> = {
   confirmed: 'Confirmado',
   cancellation_requested: 'Cancel. Solicitado',
   on_the_way: 'A Caminho',
-  completed: 'ConcluÃ­do',
+  completed: 'Concluído',
   cancelled: 'Cancelado',
-  no_show: 'NÃ£o Compareceu'
+  no_show: 'Não Compareceu'
 };
 
 const statusColors: Record<string, string> = {
@@ -215,7 +215,7 @@ export function AdminDashboard() {
      // Note: we don't have barbers and services in AdminDashboard state directly unless we load them, but in the previous step the user didn't request adding them to AdminDashboard. Wait, they are requested to be shown in the UI "Profissional: [NOME]". But AdminDashboard currently doesn't fetch barbers/services in its list. Let's just use the ID or load them.
      // Actually, let's just make it generic if we don't have it, or fetch it.
      
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nÂº ${locationData.number} â€” ${locationData.reference}\n${locationData.city} â€” ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'EndereÃ§o nÃ£o configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} � ${locationData.reference}\n${locationData.city} � ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
      
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
@@ -235,7 +235,7 @@ export function AdminDashboard() {
         appt.customerName,
         appt.id.substring(0,6).toUpperCase(),
         barber?.name || 'Barbeiro',
-        service?.name || 'ServiÃ§o',
+        service?.name || 'Serviço',
         startDate.toLocaleDateString('pt-BR'),
         startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -270,7 +270,7 @@ export function AdminDashboard() {
   };
   
   const handleCopyMessage = (appt: Appointment) => {
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nÂº ${locationData.number} â€” ${locationData.reference}\n${locationData.city} â€” ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'EndereÃ§o nÃ£o configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} � ${locationData.reference}\n${locationData.city} � ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
      
@@ -289,7 +289,7 @@ export function AdminDashboard() {
         appt.customerName,
         appt.id.substring(0,6).toUpperCase(),
         barber?.name || 'Barbeiro',
-        service?.name || 'ServiÃ§o',
+        service?.name || 'Serviço',
         startDate.toLocaleDateString('pt-BR'),
         startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -327,7 +327,7 @@ export function AdminDashboard() {
       const updates: any = { paymentStatus: newPaymentStatus };
       let newStatus = appt?.status;
 
-      // Se marcou como pago, e ainda estava pendente ou confirmado, avanÃ§a para concluÃ­do
+      // Se marcou como pago, e ainda estava pendente ou confirmado, avança para concluído
       if (newPaymentStatus === 'paid' && appt && (appt.status === 'pending_confirmation' || appt.status === 'confirmed')) {
         updates.status = 'completed';
         newStatus = 'completed';
@@ -354,7 +354,7 @@ export function AdminDashboard() {
       // Seed Services
       const svc1Ref = doc(collection(db, 'services'));
       batch.set(svc1Ref, {
-        name: 'Corte ClÃ¡ssico',
+        name: 'Corte Clássico',
         durationMinutes: 45,
         price: 60,
         barberIds: [tonyRef.id, emersonRef.id, tiagoRef.id], 
@@ -382,21 +382,21 @@ export function AdminDashboard() {
 
       batch.set(tonyRef, {
         name: 'Tony Barber',
-        specialties: ['Corte ClÃ¡ssico', 'Barba Terapia'],
+        specialties: ['Corte Clássico', 'Barba Terapia'],
         schedule,
         isActive: true,
         photoUrl: ''
       });
       batch.set(emersonRef, {
         name: 'Emerson Barber',
-        specialties: ['Corte ClÃ¡ssico', 'Barba Terapia'],
+        specialties: ['Corte Clássico', 'Barba Terapia'],
         schedule,
         isActive: true,
         photoUrl: ''
       });
       batch.set(tiagoRef, {
-        name: 'Tiago GonÃ§alves',
-        specialties: ['Corte ClÃ¡ssico'],
+        name: 'Tiago Gonçalves',
+        specialties: ['Corte Clássico'],
         schedule,
         isActive: true,
         photoUrl: ''
@@ -413,7 +413,7 @@ export function AdminDashboard() {
     }
   }
 
-  // --- GrÃ¡ficos (Computados dinamicamente) ---
+  // --- Gráficos (Computados dinamicamente) ---
   const last7Days = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - i);
@@ -426,7 +426,7 @@ export function AdminDashboard() {
   }).reverse();
 
   const revenueData = last7Days.map(dayObj => {
-    const dayAppts = filteredAppointments.filter(a => {
+    const dayAppts = appointments.filter(a => {
       if (!(a.paymentStatus === 'paid' && (a.status === 'completed' || a.status === 'no_show'))) return false;
       const ad = new Date(a.startTime);
       return ad.getDate() === dayObj.day && ad.getMonth() === dayObj.month && ad.getFullYear() === dayObj.year;
@@ -463,7 +463,7 @@ export function AdminDashboard() {
         <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
           <button onClick={() => setTimeFilter('today')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'today' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Hoje</button>
           <button onClick={() => setTimeFilter('week')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'week' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>7 Dias</button>
-          <button onClick={() => setTimeFilter('month')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'month' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Este MÃªs</button>
+          <button onClick={() => setTimeFilter('month')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'month' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Este Mês</button>
           <button onClick={() => setTimeFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'all' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Tudo</button>
         </div>
       </div>
@@ -510,11 +510,11 @@ export function AdminDashboard() {
                 <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5" />
                 </div>
-                <p className="text-neutral-400 font-medium text-sm">Ticket Médio (Realizado)</p>
+                <p className="text-neutral-400 font-medium text-sm">Ticket M�dio (Realizado)</p>
               </div>
               <h2 className="text-2xl font-bold"><AnimatedNumber value={stats.avgTicket} decimals={2} prefix="R$ " /></h2>
               <TrendIndicator current={stats.avgTicket} prev={prevStats.avgTicket} />
-              <p className="text-xs text-neutral-500 mt-2">Por atendimento concluído e pago</p>
+              <p className="text-xs text-neutral-500 mt-2">Por atendimento conclu�do e pago</p>
             </motion.div>
             
             <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
@@ -540,13 +540,13 @@ export function AdminDashboard() {
             </motion.div>
           </motion.div>
           
-          {/* GrÃ¡ficos */}
+          {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-            {/* Faturamento Ãšltimos 7 dias */}
+            {/* Faturamento Últimos 7 dias */}
             <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-neutral-400" />
-                Faturamento (Ãšltimos 7 dias)
+                Faturamento (Últimos 7 dias)
               </h2>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -559,17 +559,17 @@ export function AdminDashboard() {
                       contentStyle={{backgroundColor: '#111', borderColor: '#333', borderRadius: '8px'}}
                       formatter={(val: number) => [`R$ ${val.toFixed(2)}`, 'Faturamento']}
                     />
-                    <Bar dataKey="value" fill="#f97316" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="value" fill="#f97316" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1500} animationEasing="ease-out" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* ServiÃ§os mais populares */}
+            {/* Serviços mais populares */}
             <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                 <Scissors className="w-5 h-5 text-neutral-400" />
-                Top ServiÃ§os
+                Top Serviços
               </h2>
               <div className="h-64 w-full flex items-center justify-center">
                 {revenueByServiceData.length > 0 ? (
@@ -584,6 +584,9 @@ export function AdminDashboard() {
                         paddingAngle={5}
                         dataKey="value"
                         label={({name, percent}) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        isAnimationActive={true}
+                        animationDuration={1500}
+                        animationEasing="ease-out"
                       >
                         {revenueByServiceData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -630,7 +633,7 @@ export function AdminDashboard() {
           
           {appointments.filter(a => !a.whatsapp_confirmation_status || a.whatsapp_confirmation_status === 'not_sent').length > 0 && (
           <>
-             <h2 className="text-xl font-bold mb-4 text-orange-500">ConfirmaÃ§Ãµes pendentes (WhatsApp)</h2>
+             <h2 className="text-xl font-bold mb-4 text-orange-500">Confirmações pendentes (WhatsApp)</h2>
              <div className="bg-[#111] border border-orange-500/30 rounded-2xl overflow-hidden mb-8 p-4">
                 <div className="flex flex-col gap-3">
                    {appointments.filter(a => !a.whatsapp_confirmation_status || a.whatsapp_confirmation_status === 'not_sent').map(appt => (
@@ -640,7 +643,7 @@ export function AdminDashboard() {
                             <div className="text-sm text-neutral-400">{appt.customerPhone}</div>
                          </div>
                          <div>
-                            <div className="text-sm text-neutral-300">{new Date(appt.startTime).toLocaleDateString('pt-BR')} Ã s {new Date(appt.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                            <div className="text-sm text-neutral-300">{new Date(appt.startTime).toLocaleDateString('pt-BR')} às {new Date(appt.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
                             <div className="text-xs text-neutral-500">{services.find(s => s.id === appt.serviceId)?.name} com {barbers.find(b => b.id === appt.barberId)?.name}</div>
                          </div>
                          <div className="flex items-center gap-2">
@@ -654,7 +657,7 @@ export function AdminDashboard() {
              </div>
           </>
           )}
-          <h2 className="text-xl font-bold mb-4">PrÃ³ximos Agendamentos</h2>
+          <h2 className="text-xl font-bold mb-4">Próximos Agendamentos</h2>
           <div className="bg-[#111] border border-neutral-800 rounded-2xl overflow-hidden mb-12">
              <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -728,9 +731,9 @@ export function AdminDashboard() {
                      <tr>
                         <th className="px-6 py-4 font-medium text-neutral-400">Data</th>
                         <th className="px-6 py-4 font-medium text-neutral-400">Cliente</th>
-                        <th className="px-6 py-4 font-medium text-neutral-400">PreferÃªncia de HorÃ¡rio</th>
+                        <th className="px-6 py-4 font-medium text-neutral-400">Preferência de Horário</th>
                         <th className="px-6 py-4 font-medium text-neutral-400">Status</th>
-                        <th className="px-6 py-4 font-medium text-neutral-400 text-right">AÃ§Ãµes</th>
+                        <th className="px-6 py-4 font-medium text-neutral-400 text-right">Ações</th>
                      </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800">
@@ -776,7 +779,7 @@ export function AdminDashboard() {
                                       </button>
                                       <button 
                                          onClick={async () => {
-                                            if(confirm('Cancelar esta solicitaÃ§Ã£o?')) {
+                                            if(confirm('Cancelar esta solicitação?')) {
                                                await updateDoc(doc(db, 'waitlist_entries', entry.id), { status: 'cancelled' });
                                                loadData();
                                             }
@@ -802,10 +805,10 @@ export function AdminDashboard() {
       <div className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <Database className="w-5 h-5 text-neutral-400" />
-          ConfiguraÃ§Ã£o Inicial
+          Configuração Inicial
         </h2>
         <p className="text-neutral-500 mb-6 max-w-2xl">
-          Se o sistema estiver vazio, vocÃª pode popular o banco de dados com alguns dados de exemplo (serviÃ§os e barbeiros) para testar o fluxo de agendamento no site.
+          Se o sistema estiver vazio, você pode popular o banco de dados com alguns dados de exemplo (serviços e barbeiros) para testar o fluxo de agendamento no site.
         </p>
         <button
           onClick={seedDatabase}
