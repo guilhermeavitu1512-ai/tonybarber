@@ -391,11 +391,11 @@ export function AdminDashboard() {
                   <BarChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
                     <XAxis dataKey="date" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => \`R$\${val}\`} />
+                    <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `R$${val}`} />
                     <Tooltip 
                       cursor={{fill: '#222'}} 
                       contentStyle={{backgroundColor: '#111', borderColor: '#333', borderRadius: '8px'}}
-                      formatter={(val: number) => [\`R$ \${val.toFixed(2)}\`, 'Faturamento']}
+                      formatter={(val: number) => [`R$ ${val.toFixed(2)}`, 'Faturamento']}
                     />
                     <Bar dataKey="value" fill="#f97316" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -421,10 +421,10 @@ export function AdminDashboard() {
                         outerRadius={80}
                         paddingAngle={5}
                         dataKey="value"
-                        label={({name, percent}) => \`\${name} (\${(percent * 100).toFixed(0)}%)\`}
+                        label={({name, percent}) => `${name} (${(percent * 100).toFixed(0)}%)`}
                       >
                         {popularServicesData.map((entry, index) => (
-                          <Cell key={\`cell-\${index}\`} fill={entry.color} />
+                          <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
                       <Tooltip 
