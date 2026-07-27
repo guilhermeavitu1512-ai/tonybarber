@@ -7,6 +7,7 @@ import { Barber } from '../../types';
 import { Logo } from '../../components/Logo';
 import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
+import { LineWaves } from '../../components/ui/LineWaves';
 
 function Particles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -193,6 +194,23 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 px-4 min-h-[90vh] flex flex-col items-center justify-center overflow-hidden">
+        {/* LineWaves background — keeps particles on top */}
+        <LineWaves
+          speed={0.18}
+          innerLineCount={28}
+          outerLineCount={34}
+          warpIntensity={0.7}
+          rotation={-35}
+          edgeFadeWidth={0.15}
+          colorCycleSpeed={0.5}
+          brightness={0.08}
+          color1="#ff5a00"
+          color2="#ff7a00"
+          color3="#ff9a3c"
+          enableMouseInteraction
+          mouseInfluence={0.7}
+          style={{ opacity: 0.55, zIndex: 0 }}
+        />
         <Particles />
         
         {/* Cinematic Orange Gradient Background */}
@@ -305,6 +323,20 @@ export function LandingPage() {
 
       {/* Meu Estilo Promo */}
       <section className="py-20 px-4 relative overflow-hidden bg-neutral-900/10">
+        <LineWaves
+          speed={0.12}
+          innerLineCount={18}
+          outerLineCount={22}
+          warpIntensity={0.5}
+          rotation={15}
+          edgeFadeWidth={0.25}
+          colorCycleSpeed={0.3}
+          brightness={0.06}
+          color1="#ff5a00"
+          color2="#ff7a00"
+          color3="#ff9a3c"
+          style={{ opacity: 0.40 }}
+        />
         <motion.div 
           initial={{ opacity: 0, y: 30 }} 
           whileInView={{ opacity: 1, y: 0 }} 

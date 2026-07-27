@@ -9,6 +9,7 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { releaseProductsForAppointment, commitProductSale } from '../../lib/inventoryLogic';
 import { normalizePhoneForWhatsApp, formatWhatsAppMessage } from '../../lib/whatsapp';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
+import { LineWaves } from '../../components/ui/LineWaves';
 const statusLabels: Record<string, string> = {
   pending_confirmation: 'Aguardando',
   confirmed: 'Confirmado',
@@ -453,13 +454,30 @@ export function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <h1 className="text-3xl font-bold">Painel Administrativo</h1>
-        <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
+      <div className="relative overflow-hidden rounded-2xl mb-8 p-6 md:p-8 bg-[#0f0f0f] border border-neutral-800/60">
+        {/* Ultra-subtle LineWaves behind the header */}
+        <LineWaves
+          speed={0.10}
+          innerLineCount={16}
+          outerLineCount={18}
+          warpIntensity={0.4}
+          rotation={-10}
+          edgeFadeWidth={0.3}
+          colorCycleSpeed={0.25}
+          brightness={0.045}
+          color1="#ff5a00"
+          color2="#ff7a00"
+          color3="#ff9a3c"
+          style={{ opacity: 0.35 }}
+        />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold">Painel Administrativo</h1>
+          <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
           <button onClick={() => setTimeFilter('today')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'today' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Hoje</button>
           <button onClick={() => setTimeFilter('week')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'week' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>7 Dias</button>
           <button onClick={() => setTimeFilter('month')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'month' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Este Mês</button>
           <button onClick={() => setTimeFilter('all')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timeFilter === 'all' ? 'bg-orange-500 text-white' : 'text-neutral-400 hover:text-white'}`}>Tudo</button>
+          </div>
         </div>
       </div>
       

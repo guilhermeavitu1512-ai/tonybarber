@@ -6,6 +6,7 @@ import { Logo } from '../../components/Logo';
 import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../contexts/AuthContext';
+import { LineWaves } from '../../components/ui/LineWaves';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -47,7 +48,22 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Subtle LineWaves background */}
+      <LineWaves
+        speed={0.14}
+        innerLineCount={20}
+        outerLineCount={24}
+        warpIntensity={0.5}
+        rotation={-20}
+        edgeFadeWidth={0.2}
+        colorCycleSpeed={0.3}
+        brightness={0.055}
+        color1="#ff5a00"
+        color2="#ff7a00"
+        color3="#ff9a3c"
+        style={{ opacity: 0.45 }}
+      />
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
