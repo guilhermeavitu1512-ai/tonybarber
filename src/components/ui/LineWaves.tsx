@@ -182,10 +182,11 @@ export function LineWaves({
 
     let program: Program;
     let currentMouse = [0.5, 0.5];
-    let targetMouse = [0.5, 0.5];
+    let targetMouse  = [0.5, 0.5];
 
+    // Listen on window so pointer-events:none on the container doesn't block events
     function handleMouseMove(e: MouseEvent) {
-      const rect = (gl.canvas as HTMLCanvasElement).getBoundingClientRect();
+      const rect = container.getBoundingClientRect();
       targetMouse = [
         (e.clientX - rect.left) / rect.width,
         1.0 - (e.clientY - rect.top) / rect.height
@@ -239,8 +240,9 @@ export function LineWaves({
     container.appendChild(gl.canvas);
 
     if (enableMouseInteraction) {
-      (gl.canvas as HTMLCanvasElement).addEventListener('mousemove', handleMouseMove);
-      (gl.canvas as HTMLCanvasElement).addEventListener('mouseleave', handleMouseLeave);
+      window.addEventListener('mousemove', handleMouseMove);
+      // Snap back to center when mouse leaves the page
+      document.documentElement.addEventListener('mouseleave', handleMouseLeave);
     }
 
     let animationFrameId: number;
@@ -267,8 +269,8 @@ export function LineWaves({
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resize);
       if (enableMouseInteraction) {
-        (gl.canvas as HTMLCanvasElement).removeEventListener('mousemove', handleMouseMove);
-        (gl.canvas as HTMLCanvasElement).removeEventListener('mouseleave', handleMouseLeave);
+        window.removeEventListener('mousemove', handleMouseMove);
+        document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
       }
       if (container.contains(gl.canvas)) container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();

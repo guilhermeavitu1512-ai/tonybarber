@@ -468,6 +468,8 @@ export function AdminDashboard() {
           color1="#ff5a00"
           color2="#ff7a00"
           color3="#ff9a3c"
+          enableMouseInteraction
+          mouseInfluence={0.8}
           style={{ opacity: 0.35 }}
         />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
