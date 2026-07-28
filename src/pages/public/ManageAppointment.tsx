@@ -200,9 +200,9 @@ export function ManageAppointment() {
                     textColor="#ffffff"
                     lineColor="#86efac"
                     baseColor="#14532d"
-                    intensity={1.2}
-                    shineSize={14}
-                    shineFade={40}
+                    intensity={2.5}
+                    shineSize={28}
+                    shineFade={50}
                     followMouse
                     proximity={200}
                     disabled={actionLoading || appointment.status === 'confirmed'}

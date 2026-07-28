@@ -131,9 +131,9 @@ export function Login() {
               textColor="#ffffff"
               lineColor="#fdba74"
               baseColor="#9a3412"
-              intensity={1.3}
-              shineSize={14}
-              shineFade={45}
+              intensity={2.8}
+              shineSize={28}
+              shineFade={55}
               followMouse
               proximity={250}
               className="w-full"

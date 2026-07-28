@@ -150,13 +150,13 @@ export function LandingPage() {
                  textColor="#ffffff"
                  lineColor="#fdba74"
                  baseColor="#9a3412"
-                 intensity={1.2}
-                 shineSize={14}
-                 shineFade={40}
-                 thickness={1}
+                 intensity={2.5}
+                 shineSize={28}
+                 shineFade={50}
+                 thickness={2}
                  followMouse
                  proximity={200}
-                 autoAnimate={false}
+                 autoAnimate={true}
                >
                  Agendar
                </SpecularButton>
@@ -203,13 +203,13 @@ export function LandingPage() {
                        textColor="#ffffff"
                        lineColor="#fdba74"
                        baseColor="#9a3412"
-                       intensity={1.2}
-                       shineSize={14}
-                       shineFade={40}
-                       thickness={1}
+                       intensity={2.5}
+                       shineSize={28}
+                       shineFade={50}
+                       thickness={2}
                        followMouse
                        proximity={200}
-                       autoAnimate={false}
+                       autoAnimate={true}
                        className="w-full justify-center"
                      >
                        Agendar Agora
@@ -290,13 +290,13 @@ export function LandingPage() {
                 textColor="#ffffff"
                 lineColor="#fdba74"
                 baseColor="#9a3412"
-                intensity={1.3}
-                shineSize={14}
-                shineFade={45}
-                thickness={1}
+                intensity={2.8}
+                shineSize={28}
+                shineFade={55}
+                thickness={2}
                 followMouse
                 proximity={300}
-                autoAnimate={false}
+                autoAnimate={true}
               >
                 <span className="flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
@@ -402,13 +402,13 @@ export function LandingPage() {
               textColor="#ffffff"
               lineColor="#ff9a3c"
               baseColor="#404040"
-              intensity={1.1}
-              shineSize={12}
-              shineFade={42}
-              thickness={1}
+              intensity={2.2}
+              shineSize={26}
+              shineFade={52}
+              thickness={2}
               followMouse
               proximity={280}
-              autoAnimate={false}
+              autoAnimate={true}
             >
               Acessar Meu Estilo
             </SpecularButton>

@@ -320,9 +320,9 @@ export function MeuEstilo() {
                       textColor="#ffffff"
                       lineColor="#fdba74"
                       baseColor="#9a3412"
-                      intensity={1.2}
-                      shineSize={14}
-                      shineFade={40}
+                      intensity={2.5}
+                      shineSize={28}
+                      shineFade={50}
                       followMouse
                       proximity={220}
                       className="w-full"
@@ -386,9 +386,9 @@ export function MeuEstilo() {
                   textColor="#ffffff"
                   lineColor="#ff9a3c"
                   baseColor="#404040"
-                  intensity={1.0}
-                  shineSize={12}
-                  shineFade={40}
+                  intensity={2.0}
+                  shineSize={26}
+                  shineFade={50}
                   followMouse
                   proximity={180}
                 >
@@ -406,9 +406,9 @@ export function MeuEstilo() {
                     textColor="#ffffff"
                     lineColor="#fdba74"
                     baseColor="#9a3412"
-                    intensity={1.2}
-                    shineSize={14}
-                    shineFade={40}
+                    intensity={2.5}
+                    shineSize={28}
+                    shineFade={50}
                     followMouse
                     proximity={200}
                   >
@@ -453,9 +453,9 @@ export function MeuEstilo() {
                   textColor="#ffffff"
                   lineColor="#fdba74"
                   baseColor="#9a3412"
-                  intensity={1.3}
-                  shineSize={14}
-                  shineFade={45}
+                  intensity={2.8}
+                  shineSize={28}
+                  shineFade={55}
                   followMouse
                   proximity={250}
                   disabled={!profile.lastBarber || !profile.lastService}
@@ -589,9 +589,9 @@ export function MeuEstilo() {
                   textColor="#ffffff"
                   lineColor="#ff9a3c"
                   baseColor="#404040"
-                  intensity={1.0}
-                  shineSize={12}
-                  shineFade={40}
+                  intensity={2.0}
+                  shineSize={26}
+                  shineFade={50}
                   followMouse
                   proximity={180}
                   className="flex-1"
@@ -610,9 +610,9 @@ export function MeuEstilo() {
                     textColor="#ffffff"
                     lineColor="#fdba74"
                     baseColor="#9a3412"
-                    intensity={1.2}
-                    shineSize={14}
-                    shineFade={40}
+                    intensity={2.5}
+                    shineSize={28}
+                    shineFade={50}
                     followMouse
                     proximity={200}
                     className="w-full"

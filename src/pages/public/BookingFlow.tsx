@@ -869,9 +869,9 @@ export function BookingFlow() {
                          textColor="#ffffff"
                          lineColor="#fdba74"
                          baseColor="#9a3412"
-                         intensity={1.2}
-                         shineSize={14}
-                         shineFade={40}
+                         intensity={2.5}
+                         shineSize={28}
+                         shineFade={50}
                          followMouse
                          proximity={220}
                        >
@@ -977,9 +977,9 @@ export function BookingFlow() {
                                  textColor="#ffffff"
                                  lineColor="#fdba74"
                                  baseColor="#9a3412"
-                                 intensity={1.2}
-                                 shineSize={14}
-                                 shineFade={40}
+                                 intensity={2.5}
+                                 shineSize={28}
+                                 shineFade={50}
                                  followMouse
                                  proximity={220}
                                  onClick={() => setShowWaitlistForm(true)}
@@ -1102,9 +1102,9 @@ export function BookingFlow() {
                     textColor="#ffffff"
                     lineColor="#fdba74"
                     baseColor="#9a3412"
-                    intensity={1.3}
-                    shineSize={14}
-                    shineFade={45}
+                    intensity={2.8}
+                    shineSize={28}
+                    shineFade={55}
                     followMouse
                     proximity={260}
                     className="w-full"
@@ -1140,9 +1140,9 @@ export function BookingFlow() {
                     textColor="#ffffff"
                     lineColor="#ff9a3c"
                     baseColor="#404040"
-                    intensity={1.1}
-                    shineSize={12}
-                    shineFade={42}
+                    intensity={2.2}
+                    shineSize={26}
+                    shineFade={52}
                     followMouse
                     proximity={220}
                   >
@@ -1175,9 +1175,9 @@ export function BookingFlow() {
                      textColor="#ffffff"
                      lineColor="#86efac"
                      baseColor="#14532d"
-                     intensity={1.2}
-                     shineSize={14}
-                     shineFade={40}
+                     intensity={2.5}
+                     shineSize={28}
+                     shineFade={50}
                      followMouse
                      proximity={220}
                      onClick={() => {
@@ -1264,9 +1264,9 @@ export function BookingFlow() {
                     textColor="#ffffff"
                     lineColor="#ff9a3c"
                     baseColor="#404040"
-                    intensity={1.1}
-                    shineSize={12}
-                    shineFade={42}
+                    intensity={2.2}
+                    shineSize={26}
+                    shineFade={52}
                     followMouse
                     proximity={220}
                   >
@@ -1283,9 +1283,9 @@ export function BookingFlow() {
                       textColor="#ffffff"
                       lineColor="#fdba74"
                       baseColor="#9a3412"
-                      intensity={1.2}
-                      shineSize={14}
-                      shineFade={42}
+                      intensity={2.5}
+                      shineSize={28}
+                      shineFade={52}
                       followMouse
                       proximity={220}
                     >
@@ -1405,9 +1405,9 @@ export function BookingFlow() {
                       textColor="#ffffff"
                       lineColor="#fdba74"
                       baseColor="#9a3412"
-                      intensity={1.2}
-                      shineSize={14}
-                      shineFade={40}
+                      intensity={2.5}
+                      shineSize={28}
+                      shineFade={50}
                       followMouse
                       proximity={220}
                       className="w-full"
@@ -1478,9 +1478,9 @@ export function BookingFlow() {
                          textColor="#ffffff"
                          lineColor="#fdba74"
                          baseColor="#9a3412"
-                         intensity={1.2}
-                         shineSize={14}
-                         shineFade={40}
+                         intensity={2.5}
+                         shineSize={28}
+                         shineFade={50}
                          followMouse
                          proximity={200}
                          className="w-full"
