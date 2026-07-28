@@ -470,7 +470,6 @@ export function AdminDashboard() {
           color3="#ff9a3c"
           enableMouseInteraction
           mouseInfluence={0.8}
-          style={{ opacity: 0.35 }}
         />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h1 className="text-3xl font-bold">Painel Administrativo</h1>

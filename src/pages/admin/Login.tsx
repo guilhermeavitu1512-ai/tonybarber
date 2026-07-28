@@ -64,7 +64,6 @@ export function Login() {
         color3="#ff9a3c"
         enableMouseInteraction
         mouseInfluence={1.0}
-        style={{ opacity: 0.40 }}
       />
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

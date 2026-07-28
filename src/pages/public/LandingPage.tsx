@@ -209,7 +209,6 @@ export function LandingPage() {
           color3="#ff9a3c"
           enableMouseInteraction
           mouseInfluence={1.2}
-          style={{ opacity: 0.65, zIndex: 0 }}
         />
         <Particles />
         
@@ -337,7 +336,6 @@ export function LandingPage() {
           color3="#ff9a3c"
           enableMouseInteraction
           mouseInfluence={1.0}
-          style={{ opacity: 0.45 }}
         />
         <motion.div 
           initial={{ opacity: 0, y: 30 }} 
