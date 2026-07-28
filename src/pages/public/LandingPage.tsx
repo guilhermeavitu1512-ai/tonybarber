@@ -8,6 +8,7 @@ import { Logo } from '../../components/Logo';
 import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
 import { LineWaves } from '../../components/ui/LineWaves';
+import SpecularButton from '../../components/ui/SpecularButton';
 
 function Particles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -140,11 +141,25 @@ export function LandingPage() {
              >
                 Localização
              </button>
-             <Link 
-                to="/agendar" 
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium transition-colors shadow-lg shadow-orange-500/20"
-             >
-                Agendar
+             <Link to="/agendar" className="inline-flex">
+               <SpecularButton
+                 size="sm"
+                 radius={50}
+                 tint="#ea580c"
+                 tintOpacity={1}
+                 textColor="#ffffff"
+                 lineColor="#fdba74"
+                 baseColor="#9a3412"
+                 intensity={1.2}
+                 shineSize={14}
+                 shineFade={40}
+                 thickness={1}
+                 followMouse
+                 proximity={200}
+                 autoAnimate={false}
+               >
+                 Agendar
+               </SpecularButton>
              </Link>
           </nav>
           
@@ -179,12 +194,26 @@ export function LandingPage() {
                    >
                       Localização
                    </button>
-                   <Link 
-                      to="/agendar" 
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="text-center bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold transition-colors"
-                   >
-                      Agendar Agora
+                   <Link to="/agendar" onClick={() => setMobileMenuOpen(false)} className="inline-flex w-full justify-center">
+                     <SpecularButton
+                       size="md"
+                       radius={12}
+                       tint="#ea580c"
+                       tintOpacity={1}
+                       textColor="#ffffff"
+                       lineColor="#fdba74"
+                       baseColor="#9a3412"
+                       intensity={1.2}
+                       shineSize={14}
+                       shineFade={40}
+                       thickness={1}
+                       followMouse
+                       proximity={200}
+                       autoAnimate={false}
+                       className="w-full justify-center"
+                     >
+                       Agendar Agora
+                     </SpecularButton>
                    </Link>
                 </div>
              </motion.nav>
@@ -252,12 +281,28 @@ export function LandingPage() {
               Cortes precisos, toalha quente e um ambiente preparado para o seu momento. Agende seu horário online e garanta sua vaga.
             </p>
             
-            <Link 
-              to="/agendar" 
-              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-2 shadow-[0_0_30px_rgba(249,115,22,0.3)] hover:shadow-[0_0_40px_rgba(249,115,22,0.5)]"
-            >
-              <Calendar className="w-5 h-5" />
-              Agendar Agora
+            <Link to="/agendar" className="inline-flex">
+              <SpecularButton
+                size="lg"
+                radius={50}
+                tint="#ea580c"
+                tintOpacity={1}
+                textColor="#ffffff"
+                lineColor="#fdba74"
+                baseColor="#9a3412"
+                intensity={1.3}
+                shineSize={14}
+                shineFade={45}
+                thickness={1}
+                followMouse
+                proximity={300}
+                autoAnimate={false}
+              >
+                <span className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Agendar Agora
+                </span>
+              </SpecularButton>
             </Link>
           </motion.div>
         </div>
@@ -348,11 +393,25 @@ export function LandingPage() {
           <p className="text-lg text-neutral-400 max-w-2xl mx-auto mb-10">
             Guarde seu barbeiro, serviço, referências e preferências para repetir seu atendimento sem começar do zero.
           </p>
-          <Link 
-            to="/meu-estilo" 
-            className="bg-neutral-800 hover:bg-neutral-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-all inline-flex items-center gap-2 border border-neutral-700"
-          >
-            Acessar Meu Estilo
+          <Link to="/meu-estilo" className="inline-flex">
+            <SpecularButton
+              size="md"
+              radius={50}
+              tint="#262626"
+              tintOpacity={1}
+              textColor="#ffffff"
+              lineColor="#ff9a3c"
+              baseColor="#404040"
+              intensity={1.1}
+              shineSize={12}
+              shineFade={42}
+              thickness={1}
+              followMouse
+              proximity={280}
+              autoAnimate={false}
+            >
+              Acessar Meu Estilo
+            </SpecularButton>
           </Link>
         </motion.div>
       </section>

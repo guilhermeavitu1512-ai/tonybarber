@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
+import SpecularButton from '../../components/ui/SpecularButton';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface StyleProfile {
@@ -367,12 +368,26 @@ export function MeuEstilo() {
                   <RefreshCw className="w-4 h-4" />
                   Tentar novamente
                 </button>
-                <Link
-                  to="/agendar"
-                  className="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors flex items-center gap-2"
-                >
-                  <Scissors className="w-4 h-4" />
-                  Agendar normalmente
+                <Link to="/agendar" className="inline-flex">
+                  <SpecularButton
+                    size="sm"
+                    radius={12}
+                    tint="#ea580c"
+                    tintOpacity={1}
+                    textColor="#ffffff"
+                    lineColor="#fdba74"
+                    baseColor="#9a3412"
+                    intensity={1.2}
+                    shineSize={14}
+                    shineFade={40}
+                    followMouse
+                    proximity={200}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Scissors className="w-4 h-4" />
+                      Agendar normalmente
+                    </span>
+                  </SpecularButton>
                 </Link>
               </div>
             </motion.div>
@@ -401,14 +416,27 @@ export function MeuEstilo() {
                     Encontramos {profile.topServices.reduce((s, t) => s + t.count, 0)} atendimento(s) no seu histórico.
                   </p>
                 </div>
-                <button
-                  onClick={handleRepeat}
+                <SpecularButton
+                  size="md"
+                  radius={12}
+                  tint="#ea580c"
+                  tintOpacity={1}
+                  textColor="#ffffff"
+                  lineColor="#fdba74"
+                  baseColor="#9a3412"
+                  intensity={1.3}
+                  shineSize={14}
+                  shineFade={45}
+                  followMouse
+                  proximity={250}
                   disabled={!profile.lastBarber || !profile.lastService}
-                  className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 flex items-center gap-2 justify-center"
+                  onClick={handleRepeat}
                 >
-                  <Scissors className="w-4 h-4" />
-                  Agendar meu corte de sempre
-                </button>
+                  <span className="flex items-center gap-2">
+                    <Scissors className="w-4 h-4" />
+                    Agendar meu corte de sempre
+                  </span>
+                </SpecularButton>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
