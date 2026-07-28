@@ -6,6 +6,7 @@ import { Appointment, Barber, Service } from '../../types';
 import { ChevronLeft, Loader2, CheckCircle, Calendar, Clock, Scissors, User, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import SpecularButton from '../../components/ui/SpecularButton';
 
 export function ManageAppointment() {
   const { token } = useParams<{ token: string }>();
@@ -190,14 +191,29 @@ export function ManageAppointment() {
 
            {(appointment.status === 'pending_confirmation' || appointment.status === 'confirmed') && (
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-neutral-800">
-                <button 
-                  onClick={handleConfirmPresence}
-                  disabled={actionLoading || appointment.status === 'confirmed'}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-neutral-800 bg-neutral-900/50 hover:bg-green-500/10 hover:border-green-500/30 hover:text-green-500 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <CheckCircle className="w-6 h-6 mb-2" />
-                  <span className="text-sm font-medium">Confirmar Presença</span>
-                </button>
+                <div className="flex flex-col items-center justify-center p-4">
+                  <SpecularButton
+                    size="sm"
+                    radius={12}
+                    tint="#16a34a"
+                    tintOpacity={0.85}
+                    textColor="#ffffff"
+                    lineColor="#86efac"
+                    baseColor="#14532d"
+                    intensity={1.2}
+                    shineSize={14}
+                    shineFade={40}
+                    followMouse
+                    proximity={200}
+                    disabled={actionLoading || appointment.status === 'confirmed'}
+                    onClick={handleConfirmPresence}
+                  >
+                    <span className="flex flex-col items-center gap-1">
+                      <CheckCircle className="w-6 h-6" />
+                      <span className="text-sm font-medium">Confirmar Presença</span>
+                    </span>
+                  </SpecularButton>
+                </div>
                 
                 <button 
                   onClick={handleOnTheWay}

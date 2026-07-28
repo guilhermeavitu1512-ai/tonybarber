@@ -13,6 +13,7 @@ import { collection, getDocs, query, where, addDoc, doc, getDoc } from 'firebase
 import { db } from '../../lib/firebase';
 import { Service, Barber, Appointment, Block } from '../../types';
 import { generateAvailableSlots } from '../../lib/booking';
+import SpecularButton from '../../components/ui/SpecularButton';
 import { format, addDays, startOfToday, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isBefore, isAfter, getDay, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'motion/react';
@@ -858,15 +859,25 @@ export function BookingFlow() {
                            R$ {((selectedBarberId && selectedService.barberOverrides?.[selectedBarberId]?.price !== undefined ? selectedService.barberOverrides[selectedBarberId].price : selectedService.price) + selectedProducts.reduce((acc, pid) => acc + (dbProducts.find(p => p.id === pid)?.price || 0), 0)).toFixed(2)}
                         </span>
                      </div>
-                  </div>
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      ref={continueBtnRef}
-                      onClick={() => setStep(3)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-medium transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 w-full sm:w-auto"
-                    >
-                      Continuar para os horários
-                    </button>
+                     <div className="mt-6 flex justify-end">
+                       <SpecularButton
+                         onClick={() => setStep(3)}
+                         size="md"
+                         radius={50}
+                         tint="#ea580c"
+                         tintOpacity={1}
+                         textColor="#ffffff"
+                         lineColor="#fdba74"
+                         baseColor="#9a3412"
+                         intensity={1.2}
+                         shineSize={14}
+                         shineFade={40}
+                         followMouse
+                         proximity={220}
+                       >
+                         Continuar para os horários
+                       </SpecularButton>
+                     </div>
                   </div>
                 </div>
               )}
@@ -957,9 +968,25 @@ export function BookingFlow() {
                                 Procurar próxima data
                              </button>
                              
-                             <button onClick={() => setShowWaitlistForm(true)} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-medium transition-colors shadow-lg shadow-orange-500/20">
-                                Entrar na lista de encaixe
-                             </button>
+                             <div className="flex justify-center">
+                               <SpecularButton
+                                 size="md"
+                                 radius={12}
+                                 tint="#ea580c"
+                                 tintOpacity={1}
+                                 textColor="#ffffff"
+                                 lineColor="#fdba74"
+                                 baseColor="#9a3412"
+                                 intensity={1.2}
+                                 shineSize={14}
+                                 shineFade={40}
+                                 followMouse
+                                 proximity={220}
+                                 onClick={() => setShowWaitlistForm(true)}
+                               >
+                                 Entrar na lista de encaixe
+                               </SpecularButton>
+                             </div>
                           </div>
                        </div>
                     );
@@ -1064,13 +1091,27 @@ export function BookingFlow() {
                   />
                 </div>
                 
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-70 flex justify-center items-center gap-2"
-                >
-                  {loading ? 'Confirmando...' : (repeatApptId ? 'Confirmar meu corte de sempre' : 'Confirmar Agendamento')}
-                </button>
+                <div className="flex justify-center mt-6">
+                  <SpecularButton
+                    type="submit"
+                    disabled={loading}
+                    size="lg"
+                    radius={12}
+                    tint="#ea580c"
+                    tintOpacity={1}
+                    textColor="#ffffff"
+                    lineColor="#fdba74"
+                    baseColor="#9a3412"
+                    intensity={1.3}
+                    shineSize={14}
+                    shineFade={45}
+                    followMouse
+                    proximity={260}
+                    className="w-full"
+                  >
+                    {loading ? 'Confirmando...' : (repeatApptId ? 'Confirmar meu corte de sempre' : 'Confirmar Agendamento')}
+                  </SpecularButton>
+                </div>
               </form>
             </div>
             </motion.div>
@@ -1089,12 +1130,26 @@ export function BookingFlow() {
                 Se algum horário vagar, nós avisaremos no seu WhatsApp.
               </p>
               
-              <Link 
-                to="/"
-                className="inline-block bg-neutral-800 hover:bg-neutral-700 text-white font-bold py-3 px-8 rounded-xl transition-colors border border-neutral-700"
-              >
-                Voltar ao Início
-              </Link>
+              <div className="flex justify-center">
+                <Link to="/" className="inline-flex">
+                  <SpecularButton
+                    size="md"
+                    radius={12}
+                    tint="#262626"
+                    tintOpacity={1}
+                    textColor="#ffffff"
+                    lineColor="#ff9a3c"
+                    baseColor="#404040"
+                    intensity={1.1}
+                    shineSize={12}
+                    shineFade={42}
+                    followMouse
+                    proximity={220}
+                  >
+                    Voltar ao Início
+                  </SpecularButton>
+                </Link>
+              </div>
               </div>
             </motion.div>
           )}
@@ -1111,21 +1166,30 @@ export function BookingFlow() {
                 Te esperamos no dia {selectedSlot ? format(selectedSlot, "dd/MM 'às' HH:mm", { locale: ptBR }) : ''}.
               </p>
               <div className="mb-8 flex flex-col gap-3">
-                 <button 
-                   onClick={() => {
-                     // Generate client-side confirmation message for Barbearia Tony official number
-                     const officialNumber = (import.meta as any).env.VITE_WHATSAPP_BUSINESS_NUMBER || BARBERSHOP_LOCATION?.whatsapp?.replace(/\D/g, '');
-                     if (!officialNumber) {
-                        alert('Número oficial não configurado.');
-                        return;
-                     }
-                     const msg = `Olá! Meu nome é ${customer.name}.\nAcabei de realizar o agendamento ${createdAppointmentId?.substring(0,6).toUpperCase()}.\nProfissional: ${barbers.find(b => b.id === selectedBarberId)?.name}\nServiço: ${selectedService?.name}\nData: ${selectedSlot ? format(selectedSlot, "dd/MM/yyyy", { locale: ptBR }) : ''}\nHorário: ${selectedSlot ? format(selectedSlot, "HH:mm", { locale: ptBR }) : ''}\nEstou confirmando meu horário pelo WhatsApp.`;
-                     window.open(`https://wa.me/${officialNumber}?text=${encodeURIComponent(msg)}`, '_blank');
-                   }}
-                   className="inline-flex justify-center bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-medium transition-colors"
-                 >
-                   Confirmar também pelo WhatsApp
-                 </button>
+                 <div className="flex justify-center">
+                   <SpecularButton
+                     size="md"
+                     radius={50}
+                     tint="#16a34a"
+                     tintOpacity={0.9}
+                     textColor="#ffffff"
+                     lineColor="#86efac"
+                     baseColor="#14532d"
+                     intensity={1.2}
+                     shineSize={14}
+                     shineFade={40}
+                     followMouse
+                     proximity={220}
+                     onClick={() => {
+                       const officialNumber = (import.meta as any).env.VITE_WHATSAPP_BUSINESS_NUMBER || BARBERSHOP_LOCATION?.whatsapp?.replace(/\D/g, '');
+                       if (!officialNumber) { alert('Número oficial não configurado.'); return; }
+                       const msg = `Olá! Meu nome é ${customer.name}.\nAcabei de realizar o agendamento ${createdAppointmentId?.substring(0,6).toUpperCase()}.\nProfissional: ${barbers.find(b => b.id === selectedBarberId)?.name}\nServiço: ${selectedService?.name}\nData: ${selectedSlot ? format(selectedSlot, "dd/MM/yyyy", { locale: ptBR }) : ''}\nHorário: ${selectedSlot ? format(selectedSlot, "HH:mm", { locale: ptBR }) : ''}\nEstou confirmando meu horário pelo WhatsApp.`;
+                       window.open(`https://wa.me/${officialNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+                     }}
+                   >
+                     Confirmar também pelo WhatsApp
+                   </SpecularButton>
+                 </div>
                  <button 
                    onClick={() => {
                      const officialNumber = (import.meta as any).env.VITE_WHATSAPP_BUSINESS_NUMBER || BARBERSHOP_LOCATION?.whatsapp?.replace(/\D/g, '');
@@ -1191,18 +1255,42 @@ export function BookingFlow() {
               )}
 
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link 
-                  to="/"
-                  className="inline-flex justify-center border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 px-8 py-3 rounded-full font-medium transition-colors"
-                >
-                  Voltar ao Início
+                <Link to="/" className="inline-flex">
+                  <SpecularButton
+                    size="md"
+                    radius={50}
+                    tint="#262626"
+                    tintOpacity={1}
+                    textColor="#ffffff"
+                    lineColor="#ff9a3c"
+                    baseColor="#404040"
+                    intensity={1.1}
+                    shineSize={12}
+                    shineFade={42}
+                    followMouse
+                    proximity={220}
+                  >
+                    Voltar ao Início
+                  </SpecularButton>
                 </Link>
                 {createdAppointmentId && (
-                  <Link 
-                    to={`/agendamento/gerenciar/${createdToken || createdAppointmentId}`}
-                    className="inline-flex justify-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-medium transition-colors"
-                  >
-                    Ver Agendamento
+                  <Link to={`/agendamento/gerenciar/${createdToken || createdAppointmentId}`} className="inline-flex">
+                    <SpecularButton
+                      size="md"
+                      radius={50}
+                      tint="#ea580c"
+                      tintOpacity={1}
+                      textColor="#ffffff"
+                      lineColor="#fdba74"
+                      baseColor="#9a3412"
+                      intensity={1.2}
+                      shineSize={14}
+                      shineFade={42}
+                      followMouse
+                      proximity={220}
+                    >
+                      Ver Agendamento
+                    </SpecularButton>
                   </Link>
                 )}
               </div>
@@ -1289,26 +1377,44 @@ export function BookingFlow() {
                     />
                  </div>
                  <div>
-                    <label className="block text-sm font-medium mb-1">Período de preferência</label>
-                    <select 
-                      value={waitlistTimePref} onChange={e => setWaitlistTimePref(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900 focus:border-orange-500 text-white"
-                    >
-                       <option value="Qualquer horário">Qualquer horário</option>
-                       <option value="Manhã (09:00 - 12:00)">Manhã (09:00 - 12:00)</option>
-                       <option value="Tarde (13:00 - 18:00)">Tarde (13:00 - 18:00)</option>
-                       <option value="Noite (18:00 - 20:00)">Noite (18:00 - 20:00)</option>
-                    </select>
-                 </div>
-                 <div className="flex items-start gap-2 mt-2">
+                     <label className="block text-sm font-medium mb-1">Período de preferência</label>
+                     <select 
+                       value={waitlistTimePref} onChange={e => setWaitlistTimePref(e.target.value)}
+                       className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900 focus:border-orange-500 text-white"
+                     >
+                        <option value="Qualquer horário">Qualquer horário</option>
+                        <option value="Manhã (09:00 - 12:00)">Manhã (09:00 - 12:00)</option>
+                        <option value="Tarde (13:00 - 18:00)">Tarde (13:00 - 18:00)</option>
+                        <option value="Noite (18:00 - 20:00)">Noite (18:00 - 20:00)</option>
+                     </select>
+                  </div>
+                  <div className="flex items-start gap-2 mt-2">
                     <input required type="checkbox" id="consent" className="mt-1" />
                     <label htmlFor="consent" className="text-sm text-neutral-400">
                        Autorizo o envio de aviso pelo WhatsApp ou E-mail quando um horário surgir.
                     </label>
                  </div>
-                 <button type="submit" disabled={loading} className="w-full bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-xl font-bold transition-colors disabled:opacity-50 mt-4">
-                    {loading ? 'Entrando na lista...' : 'Entrar na Lista de Encaixe'}
-                 </button>
+                 <div className="flex justify-center mt-4">
+                    <SpecularButton
+                      type="submit"
+                      disabled={loading}
+                      size="md"
+                      radius={12}
+                      tint="#ea580c"
+                      tintOpacity={1}
+                      textColor="#ffffff"
+                      lineColor="#fdba74"
+                      baseColor="#9a3412"
+                      intensity={1.2}
+                      shineSize={14}
+                      shineFade={40}
+                      followMouse
+                      proximity={220}
+                      className="w-full"
+                    >
+                      {loading ? 'Entrando na lista...' : 'Entrar na Lista de Encaixe'}
+                    </SpecularButton>
+                  </div>
               </form>
             </motion.div>
           </motion.div>
@@ -1362,9 +1468,26 @@ export function BookingFlow() {
                        placeholder="Seu telefone ou e-mail" 
                        className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900 focus:outline-none focus:border-orange-500 mb-4"
                      />
-                     <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-xl font-bold transition-colors">
-                        Buscar
-                     </button>
+                     <div className="flex justify-center">
+                       <SpecularButton
+                         type="submit"
+                         size="md"
+                         radius={12}
+                         tint="#ea580c"
+                         tintOpacity={1}
+                         textColor="#ffffff"
+                         lineColor="#fdba74"
+                         baseColor="#9a3412"
+                         intensity={1.2}
+                         shineSize={14}
+                         shineFade={40}
+                         followMouse
+                         proximity={200}
+                         className="w-full"
+                       >
+                         Buscar
+                       </SpecularButton>
+                     </div>
                   </form>
                 </>
               )}

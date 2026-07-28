@@ -7,6 +7,7 @@ import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LineWaves } from '../../components/ui/LineWaves';
+import SpecularButton from '../../components/ui/SpecularButton';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -119,17 +120,32 @@ export function Login() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
-          >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              'Entrar'
-            )}
-          </button>
+          <div className="flex justify-center mt-6">
+            <SpecularButton
+              type="submit"
+              disabled={loading}
+              size="lg"
+              radius={12}
+              tint="#ea580c"
+              tintOpacity={1}
+              textColor="#ffffff"
+              lineColor="#fdba74"
+              baseColor="#9a3412"
+              intensity={1.3}
+              shineSize={14}
+              shineFade={45}
+              followMouse
+              proximity={250}
+              className="w-full"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2 justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Entrando...
+                </span>
+              ) : 'Entrar'}
+            </SpecularButton>
+          </div>
         </form>
       </motion.div>
     </div>

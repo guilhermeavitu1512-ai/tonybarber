@@ -5,6 +5,7 @@ import { db } from '../../lib/firebase';
 import { Barber, Service } from '../../types';
 import { Scissors, Star, MapPin, ChevronLeft, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import SpecularButton from '../../components/ui/SpecularButton';
 
 export function BarberProfile() {
   const { id } = useParams<{ id: string }>();
@@ -88,11 +89,26 @@ export function BarberProfile() {
                <p className="text-neutral-400 text-lg">{barber.specialties.join(' • ')}</p>
             </div>
             <div>
-               <Link 
-                 to={`/agendar?barber=${barber.id}`}
-                 className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-orange-500/20"
-               >
-                 Agendar com {barber.name.split(' ')[0]} <ArrowRight className="w-5 h-5" />
+               <Link to={`/agendar?barber=${barber.id}`} className="inline-flex">
+                 <SpecularButton
+                   size="lg"
+                   radius={12}
+                   tint="#ea580c"
+                   tintOpacity={1}
+                   textColor="#ffffff"
+                   lineColor="#fdba74"
+                   baseColor="#9a3412"
+                   intensity={1.3}
+                   shineSize={14}
+                   shineFade={45}
+                   followMouse
+                   proximity={280}
+                 >
+                   <span className="flex items-center gap-2">
+                     Agendar com {barber.name.split(' ')[0]}
+                     <ArrowRight className="w-5 h-5" />
+                   </span>
+                 </SpecularButton>
                </Link>
             </div>
          </div>

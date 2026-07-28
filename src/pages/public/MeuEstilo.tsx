@@ -309,14 +309,30 @@ export function MeuEstilo() {
                     </div>
                   )}
 
-                  <button
-                    type="submit"
-                    disabled={!contact.trim()}
-                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-                  >
-                    <Search className="w-4 h-4" />
-                    Acessar Meu Estilo
-                  </button>
+                  <div className="flex justify-center">
+                    <SpecularButton
+                      type="submit"
+                      disabled={!contact.trim()}
+                      size="md"
+                      radius={12}
+                      tint="#ea580c"
+                      tintOpacity={1}
+                      textColor="#ffffff"
+                      lineColor="#fdba74"
+                      baseColor="#9a3412"
+                      intensity={1.2}
+                      shineSize={14}
+                      shineFade={40}
+                      followMouse
+                      proximity={220}
+                      className="w-full"
+                    >
+                      <span className="flex items-center gap-2 justify-center">
+                        <Search className="w-4 h-4" />
+                        Acessar Meu Estilo
+                      </span>
+                    </SpecularButton>
+                  </div>
                 </form>
               </div>
 
@@ -361,13 +377,26 @@ export function MeuEstilo() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
-                <button
+                <SpecularButton
                   onClick={reset}
-                  className="px-6 py-3 rounded-xl border border-neutral-700 hover:bg-neutral-800 transition-colors flex items-center gap-2"
+                  size="sm"
+                  radius={12}
+                  tint="#262626"
+                  tintOpacity={1}
+                  textColor="#ffffff"
+                  lineColor="#ff9a3c"
+                  baseColor="#404040"
+                  intensity={1.0}
+                  shineSize={12}
+                  shineFade={40}
+                  followMouse
+                  proximity={180}
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  Tentar novamente
-                </button>
+                  <span className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    Tentar novamente
+                  </span>
+                </SpecularButton>
                 <Link to="/agendar" className="inline-flex">
                   <SpecularButton
                     size="sm"
@@ -551,19 +580,48 @@ export function MeuEstilo() {
 
               {/* Footer actions */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
+                <SpecularButton
                   onClick={reset}
-                  className="flex-1 px-4 py-3 rounded-xl border border-neutral-700 hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 text-sm"
+                  size="sm"
+                  radius={12}
+                  tint="#262626"
+                  tintOpacity={1}
+                  textColor="#ffffff"
+                  lineColor="#ff9a3c"
+                  baseColor="#404040"
+                  intensity={1.0}
+                  shineSize={12}
+                  shineFade={40}
+                  followMouse
+                  proximity={180}
+                  className="flex-1"
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  Buscar outro contato
-                </button>
-                <Link
-                  to="/agendar"
-                  className="flex-1 px-4 py-3 rounded-xl border border-neutral-700 hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 text-sm"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                  Novo agendamento
+                  <span className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    Buscar outro contato
+                  </span>
+                </SpecularButton>
+                <Link to="/agendar" className="inline-flex flex-1">
+                  <SpecularButton
+                    size="sm"
+                    radius={12}
+                    tint="#ea580c"
+                    tintOpacity={1}
+                    textColor="#ffffff"
+                    lineColor="#fdba74"
+                    baseColor="#9a3412"
+                    intensity={1.2}
+                    shineSize={14}
+                    shineFade={40}
+                    followMouse
+                    proximity={200}
+                    className="w-full"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ChevronRight className="w-4 h-4" />
+                      Novo agendamento
+                    </span>
+                  </SpecularButton>
                 </Link>
               </div>
             </motion.div>
