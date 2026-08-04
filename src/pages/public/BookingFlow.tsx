@@ -861,6 +861,7 @@ export function BookingFlow() {
                      </div>
                      <div className="mt-6 flex justify-end">
                        <button
+                         ref={continueBtnRef}
                          onClick={() => setStep(3)}
                          className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20"
                        >
