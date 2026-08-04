@@ -13,7 +13,7 @@ import { collection, getDocs, query, where, addDoc, doc, getDoc } from 'firebase
 import { db } from '../../lib/firebase';
 import { Service, Barber, Appointment, Block } from '../../types';
 import { generateAvailableSlots } from '../../lib/booking';
-import SpecularButton from '../../components/ui/SpecularButton';
+
 import { format, addDays, startOfToday, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isBefore, isAfter, getDay, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'motion/react';
@@ -638,7 +638,7 @@ export function BookingFlow() {
           </div>
         )}
 
-        <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6 sm:p-8 shadow-sm card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
           <AnimatePresence mode="wait" initial={false}>
           
           {/* STEP 1: BARBER */}
@@ -745,7 +745,7 @@ export function BookingFlow() {
               )}
 
               {selectedService && (
-                <section ref={upsellRef} aria-labelledby="upsell-title" className="mt-8 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-6">
+                <section ref={upsellRef} aria-labelledby="upsell-title" className="mt-8 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-6 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                   <div className="mb-4">
                     {repeatApptId && selectedProducts.length > 0 && (
                       <div className="mb-4 bg-orange-500/10 border border-orange-500/30 text-orange-500 p-4 rounded-xl text-sm">
@@ -830,7 +830,7 @@ export function BookingFlow() {
               )}
 
               {selectedService && (
-                <div className="mt-8 animate-fade-in bg-neutral-900/80 rounded-2xl border border-neutral-800 p-6">
+                <div className="mt-8 animate-fade-in bg-neutral-900/80 rounded-2xl border border-neutral-800 p-6 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                   <h3 className="font-bold text-lg mb-4 text-white">Resumo</h3>
                   <div className="space-y-3 text-sm text-neutral-300">
                      <div className="flex justify-between items-center">
@@ -860,23 +860,12 @@ export function BookingFlow() {
                         </span>
                      </div>
                      <div className="mt-6 flex justify-end">
-                       <SpecularButton
+                       <button
                          onClick={() => setStep(3)}
-                         size="md"
-                         radius={50}
-                         tint="#ea580c"
-                         tintOpacity={1}
-                         textColor="#ffffff"
-                         lineColor="#fdba74"
-                         baseColor="#9a3412"
-                         intensity={2.5}
-                         shineSize={28}
-                         shineFade={50}
-                         followMouse
-                         proximity={220}
+                         className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20"
                        >
                          Continuar para os horários
-                       </SpecularButton>
+                       </button>
                      </div>
                   </div>
                 </div>
@@ -969,23 +958,12 @@ export function BookingFlow() {
                              </button>
                              
                              <div className="flex justify-center">
-                               <SpecularButton
-                                 size="md"
-                                 radius={12}
-                                 tint="#ea580c"
-                                 tintOpacity={1}
-                                 textColor="#ffffff"
-                                 lineColor="#fdba74"
-                                 baseColor="#9a3412"
-                                 intensity={2.5}
-                                 shineSize={28}
-                                 shineFade={50}
-                                 followMouse
-                                 proximity={220}
+                               <button
                                  onClick={() => setShowWaitlistForm(true)}
+                                 className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20"
                                >
                                  Entrar na lista de encaixe
-                               </SpecularButton>
+                               </button>
                              </div>
                           </div>
                        </div>
@@ -1092,25 +1070,13 @@ export function BookingFlow() {
                 </div>
                 
                 <div className="flex justify-center mt-6">
-                  <SpecularButton
+                  <button
                     type="submit"
                     disabled={loading}
-                    size="lg"
-                    radius={12}
-                    tint="#ea580c"
-                    tintOpacity={1}
-                    textColor="#ffffff"
-                    lineColor="#fdba74"
-                    baseColor="#9a3412"
-                    intensity={2.8}
-                    shineSize={28}
-                    shineFade={55}
-                    followMouse
-                    proximity={260}
-                    className="w-full"
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {loading ? 'Confirmando...' : (repeatApptId ? 'Confirmar meu corte de sempre' : 'Confirmar Agendamento')}
-                  </SpecularButton>
+                  </button>
                 </div>
               </form>
             </div>
@@ -1131,23 +1097,8 @@ export function BookingFlow() {
               </p>
               
               <div className="flex justify-center">
-                <Link to="/" className="inline-flex">
-                  <SpecularButton
-                    size="md"
-                    radius={12}
-                    tint="#262626"
-                    tintOpacity={1}
-                    textColor="#ffffff"
-                    lineColor="#ff9a3c"
-                    baseColor="#404040"
-                    intensity={2.2}
-                    shineSize={26}
-                    shineFade={52}
-                    followMouse
-                    proximity={220}
-                  >
-                    Voltar ao Início
-                  </SpecularButton>
+                <Link to="/" className="bg-neutral-800 hover:bg-neutral-700 text-white px-6 py-3 rounded-xl font-medium transition-colors border border-neutral-700">
+                  Voltar ao Início
                 </Link>
               </div>
               </div>
@@ -1167,19 +1118,8 @@ export function BookingFlow() {
               </p>
               <div className="mb-8 flex flex-col gap-3">
                  <div className="flex justify-center">
-                   <SpecularButton
-                     size="md"
-                     radius={50}
-                     tint="#16a34a"
-                     tintOpacity={0.9}
-                     textColor="#ffffff"
-                     lineColor="#86efac"
-                     baseColor="#14532d"
-                     intensity={2.5}
-                     shineSize={28}
-                     shineFade={50}
-                     followMouse
-                     proximity={220}
+                   <button
+                     className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-medium transition-colors"
                      onClick={() => {
                        const officialNumber = (import.meta as any).env.VITE_WHATSAPP_BUSINESS_NUMBER || BARBERSHOP_LOCATION?.whatsapp?.replace(/\D/g, '');
                        if (!officialNumber) { alert('Número oficial não configurado.'); return; }
@@ -1188,7 +1128,7 @@ export function BookingFlow() {
                      }}
                    >
                      Confirmar também pelo WhatsApp
-                   </SpecularButton>
+                   </button>
                  </div>
                  <button 
                    onClick={() => {
@@ -1206,7 +1146,7 @@ export function BookingFlow() {
                  </button>
               </div>
 
-              <div className="bg-[#111] p-6 rounded-3xl border border-neutral-800 mb-8 text-left max-w-md mx-auto shadow-lg">
+              <div className="bg-[#111] p-6 rounded-3xl border border-neutral-800 mb-8 text-left max-w-md mx-auto shadow-lg card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                   <h3 className="font-bold text-lg mb-4 text-white flex items-center gap-2"><MapPin className="w-5 h-5 text-orange-500"/> Como chegar</h3>
                   <div className="text-sm text-neutral-300 mb-6 space-y-1">
                      <p className="font-medium text-white">{BARBERSHOP_LOCATION.name}</p>
@@ -1245,7 +1185,7 @@ export function BookingFlow() {
               </div>
               
               {!user && (
-                <div className="bg-neutral-900/80 p-6 rounded-3xl border border-neutral-800 mb-8 text-left max-w-md mx-auto">
+                <div className="bg-neutral-900/80 p-6 rounded-3xl border border-neutral-800 mb-8 text-left max-w-md mx-auto card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                   <h3 className="font-bold text-lg mb-2 text-white">Salvar minhas preferências no Meu Estilo</h3>
                   <p className="text-sm text-neutral-400 mb-6">Guarde seu barbeiro, serviço e preferências para agendar mais rápido na próxima visita.</p>
                   <Link to="/meu-estilo" className="w-full inline-block text-center bg-neutral-800 hover:bg-neutral-700 text-white px-6 py-3 rounded-xl font-medium transition-colors border border-neutral-700">
@@ -1255,42 +1195,12 @@ export function BookingFlow() {
               )}
 
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/" className="inline-flex">
-                  <SpecularButton
-                    size="md"
-                    radius={50}
-                    tint="#262626"
-                    tintOpacity={1}
-                    textColor="#ffffff"
-                    lineColor="#ff9a3c"
-                    baseColor="#404040"
-                    intensity={2.2}
-                    shineSize={26}
-                    shineFade={52}
-                    followMouse
-                    proximity={220}
-                  >
+                <Link to="/" className="inline-flex justify-center bg-neutral-800 hover:bg-neutral-700 text-white px-8 py-3 rounded-full font-medium transition-colors">
                     Voltar ao Início
-                  </SpecularButton>
                 </Link>
                 {createdAppointmentId && (
-                  <Link to={`/agendamento/gerenciar/${createdToken || createdAppointmentId}`} className="inline-flex">
-                    <SpecularButton
-                      size="md"
-                      radius={50}
-                      tint="#ea580c"
-                      tintOpacity={1}
-                      textColor="#ffffff"
-                      lineColor="#fdba74"
-                      baseColor="#9a3412"
-                      intensity={2.5}
-                      shineSize={28}
-                      shineFade={52}
-                      followMouse
-                      proximity={220}
-                    >
+                  <Link to={`/agendamento/gerenciar/${createdToken || createdAppointmentId}`} className="inline-flex justify-center bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-full font-medium transition-colors">
                       Ver Agendamento
-                    </SpecularButton>
                   </Link>
                 )}
               </div>
@@ -1312,7 +1222,7 @@ export function BookingFlow() {
           >
             <motion.div 
               initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="bg-[#111] border border-neutral-800 rounded-3xl p-6 md:p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto"
+              className="bg-[#111] border border-neutral-800 rounded-3xl p-6 md:p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}
             >
               <button onClick={() => setShowWaitlistForm(false)} className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-white rounded-full hover:bg-neutral-800">
                  <span className="text-sm">X</span>
@@ -1395,25 +1305,13 @@ export function BookingFlow() {
                     </label>
                  </div>
                  <div className="flex justify-center mt-4">
-                    <SpecularButton
+                    <button
                       type="submit"
                       disabled={loading}
-                      size="md"
-                      radius={12}
-                      tint="#ea580c"
-                      tintOpacity={1}
-                      textColor="#ffffff"
-                      lineColor="#fdba74"
-                      baseColor="#9a3412"
-                      intensity={2.5}
-                      shineSize={28}
-                      shineFade={50}
-                      followMouse
-                      proximity={220}
-                      className="w-full"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {loading ? 'Entrando na lista...' : 'Entrar na Lista de Encaixe'}
-                    </SpecularButton>
+                    </button>
                   </div>
               </form>
             </motion.div>
@@ -1430,7 +1328,7 @@ export function BookingFlow() {
           >
             <motion.div 
               initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="bg-[#111] border border-neutral-800 rounded-3xl p-6 md:p-8 max-w-md w-full relative"
+              className="bg-[#111] border border-neutral-800 rounded-3xl p-6 md:p-8 max-w-md w-full relative card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}
             >
               <button onClick={() => { setShowFindAppt(false); setFindApptStatus('idle'); setFoundAppts([]); }} className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-white rounded-full hover:bg-neutral-800">
                  <User className="w-5 h-5 opacity-0" /> {/* placeholder for close icon, can use X if available, but let's use text */}
@@ -1469,24 +1367,12 @@ export function BookingFlow() {
                        className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900 focus:outline-none focus:border-orange-500 mb-4"
                      />
                      <div className="flex justify-center">
-                       <SpecularButton
-                         type="submit"
-                         size="md"
-                         radius={12}
-                         tint="#ea580c"
-                         tintOpacity={1}
-                         textColor="#ffffff"
-                         lineColor="#fdba74"
-                         baseColor="#9a3412"
-                         intensity={2.5}
-                         shineSize={28}
-                         shineFade={50}
-                         followMouse
-                         proximity={200}
-                         className="w-full"
-                       >
-                         Buscar
-                       </SpecularButton>
+                        <button
+                          type="submit"
+                          className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20"
+                        >
+                          Buscar
+                      </button>
                      </div>
                   </form>
                 </>

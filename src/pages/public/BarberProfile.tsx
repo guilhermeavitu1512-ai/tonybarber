@@ -5,7 +5,7 @@ import { db } from '../../lib/firebase';
 import { Barber, Service } from '../../types';
 import { Scissors, Star, MapPin, ChevronLeft, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
-import SpecularButton from '../../components/ui/SpecularButton';
+
 
 export function BarberProfile() {
   const { id } = useParams<{ id: string }>();
@@ -89,27 +89,12 @@ export function BarberProfile() {
                <p className="text-neutral-400 text-lg">{barber.specialties.join(' • ')}</p>
             </div>
             <div>
-               <Link to={`/agendar?barber=${barber.id}`} className="inline-flex">
-                 <SpecularButton
-                   size="lg"
-                   radius={12}
-                   tint="#ea580c"
-                   tintOpacity={1}
-                   textColor="#ffffff"
-                   lineColor="#fdba74"
-                   baseColor="#9a3412"
-                   intensity={2.8}
-                   shineSize={28}
-                   shineFade={55}
-                   followMouse
-                   proximity={280}
-                 >
-                   <span className="flex items-center gap-2">
-                     Agendar com {barber.name.split(' ')[0]}
-                     <ArrowRight className="w-5 h-5" />
-                   </span>
-                 </SpecularButton>
-               </Link>
+               <Link to={`/agendar?barber=${barber.id}`} className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
+                    <span className="flex items-center gap-2">
+                      Agendar com {barber.name.split(' ')[0]}
+                      <ArrowRight className="w-5 h-5" />
+                    </span>
+                </Link>
             </div>
          </div>
 
@@ -138,7 +123,7 @@ export function BarberProfile() {
                <section>
                   <h2 className="text-2xl font-bold mb-6">Avaliações</h2>
                   <div className="space-y-6">
-                     <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800">
+                     <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                         <div className="flex items-center justify-between mb-4">
                            <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center font-bold">M</div>
@@ -158,7 +143,7 @@ export function BarberProfile() {
             </div>
 
             <div className="space-y-8">
-               <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl">
+               <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                   <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                     <Scissors className="w-5 h-5 text-orange-500" /> Serviços
                   </h3>

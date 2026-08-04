@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
-import SpecularButton from '../../components/ui/SpecularButton';
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface StyleProfile {
@@ -277,7 +277,7 @@ export function MeuEstilo() {
                 Acesse seu histórico, barbeiro preferido e agende seu corte habitual com um clique.
               </p>
 
-              <div className="w-full max-w-md bg-[#111] border border-neutral-800 rounded-3xl p-8">
+              <div className="w-full max-w-md bg-[#111] border border-neutral-800 rounded-3xl p-8 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                 <form onSubmit={handleSearch} className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-neutral-400 mb-2">
@@ -310,28 +310,16 @@ export function MeuEstilo() {
                   )}
 
                   <div className="flex justify-center">
-                    <SpecularButton
+                    <button
                       type="submit"
                       disabled={!contact.trim()}
-                      size="md"
-                      radius={12}
-                      tint="#ea580c"
-                      tintOpacity={1}
-                      textColor="#ffffff"
-                      lineColor="#fdba74"
-                      baseColor="#9a3412"
-                      intensity={2.5}
-                      shineSize={28}
-                      shineFade={50}
-                      followMouse
-                      proximity={220}
-                      className="w-full"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
                     >
                       <span className="flex items-center gap-2 justify-center">
                         <Search className="w-4 h-4" />
                         Acessar Meu Estilo
                       </span>
-                    </SpecularButton>
+                    </button>
                   </div>
                 </form>
               </div>
@@ -377,46 +365,20 @@ export function MeuEstilo() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
-                <SpecularButton
+                <button
                   onClick={reset}
-                  size="sm"
-                  radius={12}
-                  tint="#262626"
-                  tintOpacity={1}
-                  textColor="#ffffff"
-                  lineColor="#ff9a3c"
-                  baseColor="#404040"
-                  intensity={2.0}
-                  shineSize={26}
-                  shineFade={50}
-                  followMouse
-                  proximity={180}
+                  className="bg-neutral-800 hover:bg-neutral-700 text-white px-6 py-3 rounded-xl font-medium transition-colors border border-neutral-700"
                 >
                   <span className="flex items-center gap-2">
                     <RefreshCw className="w-4 h-4" />
                     Tentar novamente
                   </span>
-                </SpecularButton>
-                <Link to="/agendar" className="inline-flex">
-                  <SpecularButton
-                    size="sm"
-                    radius={12}
-                    tint="#ea580c"
-                    tintOpacity={1}
-                    textColor="#ffffff"
-                    lineColor="#fdba74"
-                    baseColor="#9a3412"
-                    intensity={2.5}
-                    shineSize={28}
-                    shineFade={50}
-                    followMouse
-                    proximity={200}
-                  >
+                </button>
+                <Link to="/agendar" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
                     <span className="flex items-center gap-2">
                       <Scissors className="w-4 h-4" />
                       Agendar normalmente
                     </span>
-                  </SpecularButton>
                 </Link>
               </div>
             </motion.div>
@@ -445,32 +407,21 @@ export function MeuEstilo() {
                     Encontramos {profile.topServices.reduce((s, t) => s + t.count, 0)} atendimento(s) no seu histórico.
                   </p>
                 </div>
-                <SpecularButton
-                  size="md"
-                  radius={12}
-                  tint="#ea580c"
-                  tintOpacity={1}
-                  textColor="#ffffff"
-                  lineColor="#fdba74"
-                  baseColor="#9a3412"
-                  intensity={2.8}
-                  shineSize={28}
-                  shineFade={55}
-                  followMouse
-                  proximity={250}
+                <button
                   disabled={!profile.lastBarber || !profile.lastService}
                   onClick={handleRepeat}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <span className="flex items-center gap-2">
                     <Scissors className="w-4 h-4" />
                     Agendar meu corte de sempre
                   </span>
-                </SpecularButton>
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Last Appointment */}
-                <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6 space-y-4">
+                <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6 space-y-4 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                   <h2 className="font-bold flex items-center gap-2">
                     <Clock className="w-4 h-4 text-orange-500" />
                     Último Atendimento
@@ -523,7 +474,7 @@ export function MeuEstilo() {
                 {/* Preferences */}
                 <div className="space-y-4">
                   {/* Preferred barber */}
-                  <div className="bg-[#111] border border-neutral-800 rounded-2xl p-5">
+                  <div className="bg-[#111] border border-neutral-800 rounded-2xl p-5 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                     <h2 className="font-bold flex items-center gap-2 mb-3">
                       <Award className="w-4 h-4 text-orange-500" />
                       Barbeiro Preferido
@@ -542,7 +493,7 @@ export function MeuEstilo() {
 
                   {/* Top services */}
                   {profile.topServices.length > 0 && (
-                    <div className="bg-[#111] border border-neutral-800 rounded-2xl p-5">
+                    <div className="bg-[#111] border border-neutral-800 rounded-2xl p-5 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                       <h2 className="font-bold flex items-center gap-2 mb-3">
                         <TrendingUp className="w-4 h-4 text-orange-500" />
                         Serviços Mais Usados
@@ -580,48 +531,20 @@ export function MeuEstilo() {
 
               {/* Footer actions */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <SpecularButton
+                <button
                   onClick={reset}
-                  size="sm"
-                  radius={12}
-                  tint="#262626"
-                  tintOpacity={1}
-                  textColor="#ffffff"
-                  lineColor="#ff9a3c"
-                  baseColor="#404040"
-                  intensity={2.0}
-                  shineSize={26}
-                  shineFade={50}
-                  followMouse
-                  proximity={180}
-                  className="flex-1"
+                  className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white px-6 py-3 rounded-xl font-medium transition-colors border border-neutral-700"
                 >
                   <span className="flex items-center gap-2">
                     <RefreshCw className="w-4 h-4" />
                     Buscar outro contato
                   </span>
-                </SpecularButton>
-                <Link to="/agendar" className="inline-flex flex-1">
-                  <SpecularButton
-                    size="sm"
-                    radius={12}
-                    tint="#ea580c"
-                    tintOpacity={1}
-                    textColor="#ffffff"
-                    lineColor="#fdba74"
-                    baseColor="#9a3412"
-                    intensity={2.5}
-                    shineSize={28}
-                    shineFade={50}
-                    followMouse
-                    proximity={200}
-                    className="w-full"
-                  >
-                    <span className="flex items-center gap-2">
+                </button>
+                <Link to="/agendar" className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
+                    <span className="flex items-center gap-2 justify-center">
                       <ChevronRight className="w-4 h-4" />
                       Novo agendamento
                     </span>
-                  </SpecularButton>
                 </Link>
               </div>
             </motion.div>

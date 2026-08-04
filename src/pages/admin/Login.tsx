@@ -7,7 +7,7 @@ import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LineWaves } from '../../components/ui/LineWaves';
-import SpecularButton from '../../components/ui/SpecularButton';
+
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -69,7 +69,7 @@ export function Login() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-xl"
+        className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-xl card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}
       >
         <div className="flex flex-col items-center mb-8">
           <Logo className="w-12 h-12 text-orange-500 mb-4" />
@@ -120,32 +120,18 @@ export function Login() {
             </div>
           </div>
 
-          <div className="flex justify-center mt-6">
-            <SpecularButton
-              type="submit"
-              disabled={loading}
-              size="lg"
-              radius={12}
-              tint="#ea580c"
-              tintOpacity={1}
-              textColor="#ffffff"
-              lineColor="#fdba74"
-              baseColor="#9a3412"
-              intensity={2.8}
-              shineSize={28}
-              shineFade={55}
-              followMouse
-              proximity={250}
-              className="w-full"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2 justify-center">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Entrando...
-                </span>
-              ) : 'Entrar'}
-            </SpecularButton>
-          </div>
+          <button
+               type="submit"
+               disabled={loading}
+               className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none mt-6"
+             >
+               {loading ? (
+                 <span className="flex items-center gap-2 justify-center">
+                   <Loader2 className="w-5 h-5 animate-spin" />
+                   Entrando...
+                 </span>
+               ) : 'Entrar'}
+           </button>
         </form>
       </motion.div>
     </div>

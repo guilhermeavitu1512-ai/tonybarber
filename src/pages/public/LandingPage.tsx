@@ -8,7 +8,8 @@ import { Logo } from '../../components/Logo';
 import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
 import { LineWaves } from '../../components/ui/LineWaves';
-import SpecularButton from '../../components/ui/SpecularButton';
+import SpotlightCard from '../../components/ui/SpotlightCard';
+
 
 function Particles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -141,26 +142,9 @@ export function LandingPage() {
              >
                 Localização
              </button>
-             <Link to="/agendar" className="inline-flex">
-               <SpecularButton
-                 size="sm"
-                 radius={50}
-                 tint="#ea580c"
-                 tintOpacity={1}
-                 textColor="#ffffff"
-                 lineColor="#fdba74"
-                 baseColor="#9a3412"
-                 intensity={2.5}
-                 shineSize={28}
-                 shineFade={50}
-                 thickness={2}
-                 followMouse
-                 proximity={200}
-                 autoAnimate={true}
-               >
-                 Agendar
-               </SpecularButton>
-             </Link>
+             <Link to="/agendar" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
+                  Agendar
+              </Link>
           </nav>
           
           {/* Mobile Nav Toggle */}
@@ -194,27 +178,9 @@ export function LandingPage() {
                    >
                       Localização
                    </button>
-                   <Link to="/agendar" onClick={() => setMobileMenuOpen(false)} className="inline-flex w-full justify-center">
-                     <SpecularButton
-                       size="md"
-                       radius={12}
-                       tint="#ea580c"
-                       tintOpacity={1}
-                       textColor="#ffffff"
-                       lineColor="#fdba74"
-                       baseColor="#9a3412"
-                       intensity={2.5}
-                       shineSize={28}
-                       shineFade={50}
-                       thickness={2}
-                       followMouse
-                       proximity={200}
-                       autoAnimate={true}
-                       className="w-full justify-center"
-                     >
-                       Agendar Agora
-                     </SpecularButton>
-                   </Link>
+                   <Link to="/agendar" onClick={() => setMobileMenuOpen(false)} className="w-full text-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
+                        Agendar Agora
+                    </Link>
                 </div>
              </motion.nav>
           )}
@@ -257,7 +223,7 @@ export function LandingPage() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 text-white order-2 mt-8"
           >
-            Seu estilo, <br className="hidden md:block"/> nossa <span className="text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]">assinatura.</span>
+            Original como <span className="text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]">você.</span>
           </motion.h1>
 
           {/* 2. Logo second (visually above headline, so order-1) */}
@@ -281,29 +247,12 @@ export function LandingPage() {
               Cortes precisos, toalha quente e um ambiente preparado para o seu momento. Agende seu horário online e garanta sua vaga.
             </p>
             
-            <Link to="/agendar" className="inline-flex">
-              <SpecularButton
-                size="lg"
-                radius={50}
-                tint="#ea580c"
-                tintOpacity={1}
-                textColor="#ffffff"
-                lineColor="#fdba74"
-                baseColor="#9a3412"
-                intensity={2.8}
-                shineSize={28}
-                shineFade={55}
-                thickness={2}
-                followMouse
-                proximity={300}
-                autoAnimate={true}
-              >
-                <span className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Agendar Agora
-                </span>
-              </SpecularButton>
-            </Link>
+            <Link to="/agendar" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
+                 <span className="flex items-center gap-2">
+                   <Calendar className="w-5 h-5" />
+                   Agendar Agora
+                 </span>
+             </Link>
           </motion.div>
         </div>
       </section>
@@ -317,22 +266,24 @@ export function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
              {barbers.map(barber => (
-               <Link 
-                 to={`/barbeiros/${barber.id}`}
-                 key={barber.id}
-                 className="group bg-neutral-900/50 border border-neutral-800 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all duration-300"
-               >
-                 <div className="aspect-[4/3] bg-neutral-800 overflow-hidden relative">
-                    <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800"} alt={barber.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                 </div>
-                 <div className="p-6">
-                    <h3 className="text-xl font-bold mb-2">{barber.name}</h3>
-                    <p className="text-neutral-400 text-sm mb-4">Especialista em cortes, barba e cuidados masculinos.</p>
-                    <div className="text-orange-500 font-medium text-sm flex items-center gap-2 group-hover:gap-3 transition-all">
-                       Agendar com este profissional <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+               <SpotlightCard
+                  key={barber.id}
+                  className="group bg-neutral-900/50 border border-neutral-800 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 !p-0"
+                  spotlightColor="rgba(249, 115, 22, 0.15)"
+                >
+                  <Link to={`/barbeiros/${barber.id}`} className="block">
+                    <div className="aspect-[4/3] bg-neutral-800 overflow-hidden relative">
+                       <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800"} alt={barber.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
-                 </div>
-               </Link>
+                    <div className="p-6">
+                       <h3 className="text-xl font-bold mb-2">{barber.name}</h3>
+                       <p className="text-neutral-400 text-sm mb-4">Especialista em cortes, barba e cuidados masculinos.</p>
+                       <div className="text-orange-500 font-medium text-sm flex items-center gap-2 group-hover:gap-3 transition-all">
+                          Agendar com este profissional <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+                       </div>
+                    </div>
+                  </Link>
+                </SpotlightCard>
              ))}
           </div>
         </div>
@@ -348,7 +299,7 @@ export function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredPackages.map(pkg => (
-              <div key={pkg.id} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 hover:border-orange-500/50 transition-all group">
+              <SpotlightCard key={pkg.id} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 hover:border-orange-500/50 transition-all group" spotlightColor="rgba(249, 115, 22, 0.15)">
                  <h3 className="text-2xl font-bold mb-4">{pkg.name}</h3>
                  <p className="text-neutral-400 mb-6 h-12">{pkg.description}</p>
                  <div className="text-4xl font-bold text-orange-500 mb-6">R$ {pkg.price.toFixed(2)}</div>
@@ -358,7 +309,7 @@ export function LandingPage() {
                  <Link to="/agendar" className="block w-full bg-neutral-800 group-hover:bg-orange-500 group-hover:text-white text-center text-white py-3 rounded-xl font-bold transition-colors">
                     Adquirir Pacote
                  </Link>
-              </div>
+              </SpotlightCard>
             ))}
           </div>
         </div>
@@ -393,26 +344,9 @@ export function LandingPage() {
           <p className="text-lg text-neutral-400 max-w-2xl mx-auto mb-10">
             Guarde seu barbeiro, serviço, referências e preferências para repetir seu atendimento sem começar do zero.
           </p>
-          <Link to="/meu-estilo" className="inline-flex">
-            <SpecularButton
-              size="md"
-              radius={50}
-              tint="#262626"
-              tintOpacity={1}
-              textColor="#ffffff"
-              lineColor="#ff9a3c"
-              baseColor="#404040"
-              intensity={2.2}
-              shineSize={26}
-              shineFade={52}
-              thickness={2}
-              followMouse
-              proximity={280}
-              autoAnimate={true}
-            >
-              Acessar Meu Estilo
-            </SpecularButton>
-          </Link>
+          <Link to="/meu-estilo" className="bg-neutral-800 hover:bg-neutral-700 text-white px-6 py-3 rounded-xl font-medium transition-colors border border-neutral-700">
+               Acessar Meu Estilo
+           </Link>
         </motion.div>
       </section>
 
@@ -430,7 +364,7 @@ export function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300"
+            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}
           >
             <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
               <Clock className="w-7 h-7" />
@@ -444,7 +378,7 @@ export function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300"
+            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}
           >
             <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
               <Star className="w-7 h-7" />
@@ -458,7 +392,7 @@ export function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300"
+            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}
           >
             <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
               <MapPin className="w-7 h-7" />

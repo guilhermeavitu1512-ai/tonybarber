@@ -6,7 +6,7 @@ import { Appointment, Barber, Service } from '../../types';
 import { ChevronLeft, Loader2, CheckCircle, Calendar, Clock, Scissors, User, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import SpecularButton from '../../components/ui/SpecularButton';
+
 
 export function ManageAppointment() {
   const { token } = useParams<{ token: string }>();
@@ -137,7 +137,7 @@ export function ManageAppointment() {
         
         <h1 className="text-3xl font-bold mb-8">Gerenciar Agendamento</h1>
 
-        <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6 md:p-8">
+        <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6 md:p-8 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
               <div>
                  <h2 className="text-2xl font-bold">{appointment.customerName}</h2>
@@ -191,29 +191,14 @@ export function ManageAppointment() {
 
            {(appointment.status === 'pending_confirmation' || appointment.status === 'confirmed') && (
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-neutral-800">
-                <div className="flex flex-col items-center justify-center p-4">
-                  <SpecularButton
-                    size="sm"
-                    radius={12}
-                    tint="#16a34a"
-                    tintOpacity={0.85}
-                    textColor="#ffffff"
-                    lineColor="#86efac"
-                    baseColor="#14532d"
-                    intensity={2.5}
-                    shineSize={28}
-                    shineFade={50}
-                    followMouse
-                    proximity={200}
-                    disabled={actionLoading || appointment.status === 'confirmed'}
-                    onClick={handleConfirmPresence}
-                  >
-                    <span className="flex flex-col items-center gap-1">
-                      <CheckCircle className="w-6 h-6" />
-                      <span className="text-sm font-medium">Confirmar Presença</span>
-                    </span>
-                  </SpecularButton>
-                </div>
+                <button
+                   onClick={handleConfirmPresence}
+                   disabled={actionLoading || appointment.status === 'confirmed'}
+                   className="flex flex-col items-center justify-center p-4 rounded-xl border border-neutral-800 bg-neutral-900/50 hover:bg-green-500/10 hover:border-green-500/30 hover:text-green-500 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                 >
+                     <CheckCircle className="w-6 h-6 mb-2" />
+                     <span className="text-sm font-medium">Confirmar Presença</span>
+                 </button>
                 
                 <button 
                   onClick={handleOnTheWay}
