@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
 import { LineWaves } from '../../components/ui/LineWaves';
 import SpotlightCard from '../../components/ui/SpotlightCard';
+import StrokeText from '../../components/ui/StrokeText';
 
 
 function Particles() {
@@ -223,7 +224,13 @@ export function LandingPage() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 text-white order-2 mt-8"
           >
-            Original como <span className="text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]">você.</span>
+            <StrokeText
+              text="Original como você."
+              fontSize={80}
+              strokeWidth={1.5}
+              strokeColor="#f97316"
+              fillColor="#ffffff"
+            />
           </motion.h1>
 
           {/* 2. Logo second (visually above headline, so order-1) */}
