@@ -24,39 +24,7 @@
 }
 
 /* ─── Section reveal on scroll ────────────────────────────────────────────── */
-/* Only hides sections AFTER JS marks them with [data-reveal],                */
-/* so sections are always visible if JS hasn't run yet (safe for React SPA).  */
+/* Transitions applied via inline styles in main.tsx (ThemeManager).          */
+/* Sections transition opacity/transform/filter when IntersectionObserver     */
+/* fires — this avoids any CSS-vs-React timing issues in the SPA.             */
 
-@keyframes section-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-    filter: blur(3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0px);
-    filter: blur(0px);
-  }
-}
-
-/* Hidden state — only applies once JS adds the attribute */
-section[data-reveal] {
-  opacity: 0;
-}
-
-/* Visible state — triggered by IntersectionObserver */
-section[data-reveal="visible"] {
-  opacity: 1;
-  animation: section-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  section[data-reveal],
-  section[data-reveal="visible"] {
-    opacity: 1 !important;
-    animation: none !important;
-    transform: none !important;
-    filter: none !important;
-  }
-}
