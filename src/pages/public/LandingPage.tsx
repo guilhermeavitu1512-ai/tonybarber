@@ -222,7 +222,7 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 30, filter: 'blur(10px)', scale: 0.95 }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 text-white order-2 mt-8"
+            className="text-5xl md:text-7xl font-extrabold tracking-tight mb-0 text-white order-2 mt-8"
           >
             <StrokeText
               text="Original como você."
@@ -248,7 +248,7 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.6, ease: "easeOut" }}
-            className="order-3 flex flex-col items-center mt-6"
+            className="order-3 flex flex-col items-center mt-0"
           >
             <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mb-10 leading-relaxed">
               Cortes precisos, toalha quente e um ambiente preparado para o seu momento. Agende seu horário online e garanta sua vaga.
