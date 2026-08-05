@@ -24,13 +24,14 @@
 }
 
 /* ─── Section reveal on scroll ────────────────────────────────────────────── */
-/* Targets every <section> element automatically — no code changes needed.    */
+/* Only hides sections AFTER JS marks them with [data-reveal],                */
+/* so sections are always visible if JS hasn't run yet (safe for React SPA).  */
 
 @keyframes section-reveal {
   from {
     opacity: 0;
-    transform: translateY(40px);
-    filter: blur(4px);
+    transform: translateY(32px);
+    filter: blur(3px);
   }
   to {
     opacity: 1;
@@ -39,29 +40,23 @@
   }
 }
 
-section {
+/* Hidden state — only applies once JS adds the attribute */
+section[data-reveal] {
   opacity: 0;
-  transition: none;
 }
 
-section.section--visible {
-  animation: section-reveal 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+/* Visible state — triggered by IntersectionObserver */
+section[data-reveal="visible"] {
+  opacity: 1;
+  animation: section-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
-
-/* First section (hero) starts already visible */
-section:first-of-type {
-  opacity: 1 !important;
-  animation: none !important;
-}
-
-/* Stagger sibling sections for a cascading feel */
-section.section--visible:nth-of-type(2) { animation-delay: 0ms; }
-section.section--visible:nth-of-type(3) { animation-delay: 60ms; }
-section.section--visible:nth-of-type(4) { animation-delay: 120ms; }
-section.section--visible:nth-of-type(5) { animation-delay: 180ms; }
-section.section--visible:nth-of-type(6) { animation-delay: 240ms; }
-section.section--visible:nth-of-type(7) { animation-delay: 300ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  section { opacity: 1 !important; animation: none !important; }
+  section[data-reveal],
+  section[data-reveal="visible"] {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
 }

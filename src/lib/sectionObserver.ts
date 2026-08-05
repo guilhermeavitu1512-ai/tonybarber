@@ -1,36 +1,56 @@
 /**
  * sectionObserver.ts
- * Automatically reveals <section> elements as they scroll into view.
+ * Reveals <section> elements as they scroll into view using IntersectionObserver.
+ * Uses data attributes (not CSS classes) so sections remain visible if JS hasn't run.
  * Imported once in main.tsx — zero changes to any component code.
  */
 
 const observe = () => {
   const sections = document.querySelectorAll('section');
+  if (!sections.length) return;
 
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('section--visible');
-          io.unobserve(entry.target); // animate once
+          entry.target.setAttribute('data-reveal', 'visible');
+          io.unobserve(entry.target); // animate once only
         }
       });
     },
-    { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    { threshold: 0.06, rootMargin: '0px 0px -30px 0px' }
   );
 
-  sections.forEach((s) => io.observe(s));
+  sections.forEach((section, index) => {
+    // First section (hero) is always visible — skip it
+    if (index === 0) return;
+    // Mark as "pending reveal" — CSS will now hide it
+    section.setAttribute('data-reveal', 'pending');
+    io.observe(section);
+  });
 };
 
-// Run after DOM is ready
+// MutationObserver to re-run when React renders new sections (SPA route changes)
+const watchForSections = () => {
+  let debounce: ReturnType<typeof setTimeout>;
+
+  const mo = new MutationObserver(() => {
+    clearTimeout(debounce);
+    debounce = setTimeout(observe, 150);
+  });
+
+  mo.observe(document.body, { childList: true, subtree: true });
+};
+
+// Bootstrap
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', observe);
+  document.addEventListener('DOMContentLoaded', () => {
+    observe();
+    watchForSections();
+  });
 } else {
   observe();
+  watchForSections();
 }
 
-// Also re-observe on route changes (React SPA)
-export const initSectionObserver = () => {
-  // Small delay to let React render the new route's sections
-  setTimeout(observe, 100);
-};
+export {};
