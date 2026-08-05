@@ -22,3 +22,46 @@
 .animate-slide-up {
   animation: var(--animate-slide-up);
 }
+
+/* ─── Section reveal on scroll ────────────────────────────────────────────── */
+/* Targets every <section> element automatically — no code changes needed.    */
+
+@keyframes section-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+    filter: blur(0px);
+  }
+}
+
+section {
+  opacity: 0;
+  transition: none;
+}
+
+section.section--visible {
+  animation: section-reveal 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* First section (hero) starts already visible */
+section:first-of-type {
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+/* Stagger sibling sections for a cascading feel */
+section.section--visible:nth-of-type(2) { animation-delay: 0ms; }
+section.section--visible:nth-of-type(3) { animation-delay: 60ms; }
+section.section--visible:nth-of-type(4) { animation-delay: 120ms; }
+section.section--visible:nth-of-type(5) { animation-delay: 180ms; }
+section.section--visible:nth-of-type(6) { animation-delay: 240ms; }
+section.section--visible:nth-of-type(7) { animation-delay: 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  section { opacity: 1 !important; animation: none !important; }
+}
