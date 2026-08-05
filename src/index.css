@@ -28,3 +28,60 @@
 /* Sections transition opacity/transform/filter when IntersectionObserver     */
 /* fires — this avoids any CSS-vs-React timing issues in the SPA.             */
 
+/* ─── Mobile & touch optimizations ─────────────────────────────────────────── */
+
+/* Eliminate 300ms tap delay on all interactive elements */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* Safe-area padding utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Page bottom padding when MobileBookingCTA is visible — only on mobile */
+@media (max-width: 639px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── SpotlightCard effect ──────────────────────────────────────────────────── */
+.card-spotlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-spotlight::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y, 50%);
+  left: var(--mouse-x, 50%);
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--spotlight-color, rgba(255,255,255,0.08)) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 50%;
+}
+
+.card-spotlight:hover::before {
+  opacity: 1;
+}

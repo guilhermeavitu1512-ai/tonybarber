@@ -114,6 +114,8 @@ export function LandingPage() {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [featuredPackages, setFeaturedPackages] = useState<any[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   useReactEffect(() => {
     async function loadBarbers() {
       try {
@@ -125,13 +127,35 @@ export function LandingPage() {
     }
     loadBarbers();
   }, []);
+
+  // Close mobile menu on outside click or Escape key
+  useReactEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileMenuOpen(false); };
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    document.addEventListener('mousedown', handleClick);
+    // Prevent body scroll when menu is open
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.removeEventListener('mousedown', handleClick);
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="border-b border-neutral-800 bg-[#0A0A0A] sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold tracking-tighter flex items-center gap-2">
-            <Logo className="w-10 h-10" />
+      <div ref={menuRef}>
+      <header className="border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="text-xl sm:text-2xl font-bold tracking-tighter flex items-center gap-2">
+            <Logo className="w-9 h-9 sm:w-10 sm:h-10" />
             <span>Barbearia <span className="text-orange-500">Tony</span></span>
           </div>
           
@@ -145,16 +169,17 @@ export function LandingPage() {
              >
                 Localização
              </button>
-             <Link to="/agendar" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
+             <Link to="/agendar" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
                   Agendar
               </Link>
           </nav>
           
-          {/* Mobile Nav Toggle */}
+          {/* Mobile Nav Toggle — 44px min touch target */}
           <button 
-            className="md:hidden p-2 text-neutral-300 hover:text-white"
+            className="md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] text-neutral-300 hover:text-white rounded-xl transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Alternar menu"
+            aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -167,9 +192,10 @@ export function LandingPage() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                 className="md:hidden border-t border-neutral-800 bg-[#0A0A0A] overflow-hidden"
              >
-                <div className="flex flex-col p-4 gap-4">
+                <div className="flex flex-col px-4 py-4 gap-3">
                    <button 
                       onClick={() => {
                          setMobileMenuOpen(false);
@@ -177,21 +203,28 @@ export function LandingPage() {
                             document.getElementById('localizacao')?.scrollIntoView({ behavior: 'smooth' });
                          }, 100);
                       }}
-                      className="text-left text-neutral-300 hover:text-orange-500 font-medium py-2 px-4 rounded-xl hover:bg-neutral-900 transition-colors"
+                      className="text-left text-neutral-300 hover:text-orange-500 font-medium min-h-[44px] px-4 rounded-xl hover:bg-neutral-900 transition-colors flex items-center"
                    >
                       Localização
                    </button>
-                   <Link to="/agendar" onClick={() => setMobileMenuOpen(false)} className="w-full text-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
-                        Agendar Agora
-                    </Link>
+                   <Link
+                     to="/agendar"
+                     onClick={() => setMobileMenuOpen(false)}
+                     className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white px-6 rounded-xl font-bold transition-colors shadow-lg shadow-orange-500/20"
+                     style={{ minHeight: 48, fontSize: 16 }}
+                   >
+                     <Calendar className="w-5 h-5" />
+                     Agendar horário
+                   </Link>
                 </div>
              </motion.nav>
           )}
         </AnimatePresence>
       </header>
+      </div>
 
       {/* ── Hero Section ───────────────────────────────────────────────────── */}
-      <section className="relative py-20 md:py-32 px-4 min-h-[90vh] flex flex-col items-center justify-center overflow-hidden">
+      <section className="relative py-16 md:py-32 px-4 min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden">
         <LineWaves
           speed={0.18}
           innerLineCount={28}
@@ -230,11 +263,11 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 30, filter: 'blur(10px)', scale: 0.95 }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl md:text-7xl font-extrabold tracking-tight mb-0 text-white order-2 mt-8"
+            className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-0 text-white order-2 mt-6 sm:mt-8 w-full"
           >
             <StrokeText
               text="Original como você."
-              fontSize={80}
+              fontSize={typeof window !== 'undefined' && window.innerWidth < 480 ? 44 : 80}
               strokeWidth={1.5}
               strokeColor="#f97316"
               fillColor="#ffffff"
@@ -256,18 +289,20 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.6, ease: "easeOut" }}
-            className="order-3 flex flex-col items-center mt-0"
+            className="order-3 flex flex-col items-center mt-0 w-full max-w-sm sm:max-w-none"
           >
-            <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mb-10 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-neutral-400 max-w-2xl mb-8 leading-relaxed px-1">
               Cortes precisos, toalha quente e um ambiente preparado para o seu momento. Agende seu horário online e garanta sua vaga.
             </p>
             
-            <Link to="/agendar" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
-                 <span className="flex items-center gap-2">
-                   <Calendar className="w-5 h-5" />
-                   Agendar Agora
-                 </span>
-             </Link>
+            <Link
+              to="/agendar"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white px-8 rounded-xl font-bold transition-colors shadow-lg shadow-orange-500/20"
+              style={{ minHeight: 52, fontSize: 17 }}
+            >
+              <Calendar className="w-5 h-5 shrink-0" />
+              Agendar Agora
+            </Link>
           </motion.div>
 
           {/* Scroll indicator */}
@@ -442,16 +477,20 @@ export function LandingPage() {
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <motion.footer
-        className="mt-auto py-8 border-t border-neutral-800"
+        className="mt-auto py-8 border-t border-neutral-800 pb-safe"
+        style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 0.4 }}
       >
+        {/* Extra space on mobile for the floating CTA bar */}
+        <div className="sm:hidden h-16" aria-hidden="true" />
         <div className="max-w-5xl mx-auto px-4 text-center text-neutral-500 text-sm">
           &copy; {new Date().getFullYear()} Barbearia Tony. Todos os direitos reservados.
         </div>
       </motion.footer>
+
     </div>
   );
 }

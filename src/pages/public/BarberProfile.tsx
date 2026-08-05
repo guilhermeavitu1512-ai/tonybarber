@@ -63,38 +63,43 @@ export function BarberProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white pb-20">
-      <div className="h-64 md:h-80 w-full bg-neutral-900 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0A0A0A] text-white pb-24 sm:pb-20">
+      {/* Hero banner */}
+      <div className="h-48 sm:h-64 md:h-80 w-full bg-neutral-900 relative overflow-hidden">
          <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=2074" alt="Barbershop" className="w-full h-full object-cover opacity-40" />
          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] to-transparent"></div>
-         <div className="absolute top-6 left-6">
-            <Link to="/" className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/80 transition-colors">
+         <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
+            <Link to="/" className="flex items-center justify-center w-11 h-11 bg-black/60 backdrop-blur-md rounded-full hover:bg-black/80 transition-colors" aria-label="Voltar">
                <ChevronLeft className="w-6 h-6" />
             </Link>
          </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 -mt-20 relative z-10">
-         <div className="flex flex-col md:flex-row gap-8 items-start md:items-end mb-12">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-[#0A0A0A] bg-neutral-800 overflow-hidden shrink-0">
-               <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=2070"} alt={barber.name} className="w-full h-full object-cover" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-16 sm:-mt-20 relative z-10">
+         {/* Profile header: mobile = column, md = row */}
+         <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-end mb-8 md:mb-12">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 border-[#0A0A0A] bg-neutral-800 overflow-hidden shrink-0">
+               <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=2070"} alt={barber.name} className="w-full h-full object-cover object-top" />
             </div>
-            <div className="flex-1">
-               <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-5 h-5 text-orange-500 fill-orange-500" />
-                  <span className="font-bold text-lg">4.9</span>
-                  <span className="text-neutral-500">(128 avaliações)</span>
+            <div className="flex-1 min-w-0">
+               <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 fill-orange-500" />
+                  <span className="font-bold text-base sm:text-lg">4.9</span>
+                  <span className="text-neutral-500 text-sm">(128 avaliações)</span>
                </div>
-               <h1 className="text-4xl md:text-5xl font-bold mb-2">{barber.name}</h1>
-               <p className="text-neutral-400 text-lg">{barber.specialties.join(' • ')}</p>
+               <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-1 sm:mb-2 truncate">{barber.name}</h1>
+               <p className="text-neutral-400 text-sm sm:text-lg">{barber.specialties.join(' • ')}</p>
             </div>
-            <div>
-               <Link to={`/agendar?barber=${barber.id}`} className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20">
-                    <span className="flex items-center gap-2">
-                      Agendar com {barber.name.split(' ')[0]}
-                      <ArrowRight className="w-5 h-5" />
-                    </span>
-                </Link>
+            {/* CTA — full-width on mobile */}
+            <div className="w-full md:w-auto shrink-0">
+               <Link
+                 to={`/agendar?barber=${barber.id}`}
+                 className="flex items-center justify-center gap-2 w-full md:w-auto bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white px-6 rounded-xl font-bold transition-colors shadow-lg shadow-orange-500/20"
+                 style={{ minHeight: 48, fontSize: 16 }}
+               >
+                 Agendar com {barber.name.split(' ')[0]}
+                 <ArrowRight className="w-5 h-5" />
+               </Link>
             </div>
          </div>
 

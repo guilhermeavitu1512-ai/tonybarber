@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { BrowserRouter as Router, Routes, Route, Outlet, Link } from 'react-router-dom';
 
 import { Login } from './pages/admin/Login';
@@ -19,6 +14,7 @@ import { AdminBarbers } from './pages/admin/AdminBarbers';
 import { AdminSettings } from './pages/admin/AdminSettings';
 import { LayoutDashboard, LogOut, Settings } from 'lucide-react';
 import { Logo } from './components/Logo';
+import { MobileBookingCTA } from './components/ui/MobileBookingCTA';
 
 import { MeuEstilo } from './pages/public/MeuEstilo';
 import { BarberProfile } from './pages/public/BarberProfile';
@@ -28,9 +24,11 @@ function PublicLayout() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-orange-500/30">
       <Outlet />
+      <MobileBookingCTA />
     </div>
   );
 }
+
 
 function AdminLayout() {
   const { logout } = useAuth();

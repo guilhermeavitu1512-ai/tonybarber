@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { getSmartUpsellProducts } from '../../lib/upsellLogic';
+import { StepIndicator } from '../../components/ui/StepIndicator';
 
 
 import { auth } from '../../lib/firebase';
@@ -37,15 +38,17 @@ function MonthCalendar({ currentMonth, setCurrentMonth, selectedDate, setSelecte
         <button 
           onClick={() => canGoPrev && setCurrentMonth(subMonths(currentMonth, 1))} 
           disabled={!canGoPrev}
-          className="p-2 rounded-lg bg-neutral-900 border border-neutral-800 disabled:opacity-30"
+          className="flex items-center justify-center w-11 h-11 rounded-xl bg-neutral-900 border border-neutral-800 disabled:opacity-30 transition-colors hover:border-neutral-600"
+          aria-label="Mês anterior"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <div className="font-bold text-lg capitalize">{format(currentMonth, 'MMMM yyyy', { locale: ptBR })}</div>
+        <div className="font-bold text-base sm:text-lg capitalize">{format(currentMonth, 'MMMM yyyy', { locale: ptBR })}</div>
         <button 
           onClick={() => canGoNext && setCurrentMonth(addMonths(currentMonth, 1))} 
           disabled={!canGoNext}
-          className="p-2 rounded-lg bg-neutral-900 border border-neutral-800 disabled:opacity-30"
+          className="flex items-center justify-center w-11 h-11 rounded-xl bg-neutral-900 border border-neutral-800 disabled:opacity-30 transition-colors hover:border-neutral-600"
+          aria-label="Próximo mês"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
         </button>
@@ -606,35 +609,32 @@ export function BookingFlow() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0A0A0A] text-white">
-      <header className="border-b border-neutral-800 bg-[#0A0A0A] sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/" className="text-neutral-500 hover:text-white transition-colors flex items-center gap-2">
-            <ChevronLeft className="w-5 h-5" />
-            <span className="hidden sm:inline">Voltar</span>
+      <header className="border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-md sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-neutral-500 hover:text-white transition-colors min-h-[44px] min-w-[44px] px-1"
+            aria-label="Voltar ao início"
+          >
+            <ChevronLeft className="w-5 h-5 shrink-0" />
+            <span className="hidden sm:inline text-sm font-medium">Voltar</span>
           </Link>
-          <div className="text-xl font-bold tracking-tighter flex items-center gap-2">
+          <div className="text-lg sm:text-xl font-bold tracking-tighter flex items-center gap-2">
             <Scissors className="w-5 h-5 text-orange-500" />
             <span>Agendamento</span>
           </div>
-          <div className="w-16"></div>
+          <div className="w-11 sm:w-16"></div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 sm:py-8">
         {step < 5 && (
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-orange-500">Passo {step} de 4</span>
-              <span className="text-sm text-neutral-500">
-                {step === 1 && 'Selecione um Profissional'}
-                {step === 2 && 'Selecione os Serviços'}
-                {step === 3 && 'Selecione o Horário'}
-                {step === 4 && 'Confirmar'}
-              </span>
-            </div>
-            <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-              <div className="h-full bg-orange-500 rounded-full transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }}></div>
-            </div>
+          <div className="mb-6">
+            <StepIndicator
+              currentStep={step > 4 ? 4 : step}
+              totalSteps={4}
+              labels={['Profissional', 'Serviços', 'Horário', 'Dados']}
+            />
           </div>
         )}
 
