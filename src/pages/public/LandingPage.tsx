@@ -10,7 +10,11 @@ import { LocationSection } from '../../components/LocationSection';
 import { LineWaves } from '../../components/ui/LineWaves';
 import SpotlightCard from '../../components/ui/SpotlightCard';
 import StrokeText from '../../components/ui/StrokeText';
-
+import { AnimatedSection } from '../../components/ui/AnimatedSection';
+import { AnimatedContainer } from '../../components/ui/AnimatedContainer';
+import { AnimatedItem } from '../../components/ui/AnimatedItem';
+import { SectionTransition } from '../../components/ui/SectionTransition';
+import { ScrollIndicator } from '../../components/ui/ScrollIndicator';
 
 function Particles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -124,8 +128,6 @@ export function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      
-      {/* Header */}
       <header className="border-b border-neutral-800 bg-[#0A0A0A] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold tracking-tighter flex items-center gap-2">
@@ -188,9 +190,8 @@ export function LandingPage() {
         </AnimatePresence>
       </header>
 
-      {/* Hero Section */}
+      {/* ── Hero Section ───────────────────────────────────────────────────── */}
       <section className="relative py-20 md:py-32 px-4 min-h-[90vh] flex flex-col items-center justify-center overflow-hidden">
-        {/* LineWaves background — keeps particles on top */}
         <LineWaves
           speed={0.18}
           innerLineCount={28}
@@ -214,6 +215,13 @@ export function LandingPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 2 }}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-orange-500/10 blur-[120px] md:blur-[150px] rounded-full pointer-events-none z-0"
+        />
+
+        {/* Bottom fade to next section */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 z-10"
+          style={{ background: 'linear-gradient(to bottom, transparent 0%, #0a0a0a 100%)' }}
         />
 
         <div className="relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
@@ -261,70 +269,103 @@ export function LandingPage() {
                  </span>
              </Link>
           </motion.div>
+
+          {/* Scroll indicator */}
+          <motion.div
+            className="order-4 mt-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2.5, duration: 0.8 }}
+          >
+            <ScrollIndicator />
+          </motion.div>
         </div>
       </section>
 
-      {/* Barbers Section */}
-      <section className="py-20 px-4">
+      <SectionTransition variant="orangeGlow" />
+
+      {/* ── Nossa Equipe ───────────────────────────────────────────────────── */}
+      <AnimatedSection className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-             <h2 className="text-3xl md:text-5xl font-bold mb-4">Nossa <span className="text-orange-500">Equipe</span></h2>
-             <p className="text-neutral-400 max-w-2xl mx-auto">Conheça nossos profissionais, veja os portfolios e agende com o barbeiro que mais combina com seu estilo.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-             {barbers.map(barber => (
-               <SpotlightCard
-                  key={barber.id}
-                  className="group bg-neutral-900/50 border border-neutral-800 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 !p-0"
+          {/* Section heading */}
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">Nossa <span className="text-orange-500">Equipe</span></h2>
+            <p className="text-neutral-400 max-w-2xl mx-auto">Conheça nossos profissionais, veja os portfolios e agende com o barbeiro que mais combina com seu estilo.</p>
+          </motion.div>
+          {/* Staggered barber cards */}
+          <AnimatedContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {barbers.map(barber => (
+              <AnimatedItem key={barber.id}>
+                <SpotlightCard
+                  className="group bg-neutral-900/50 border border-neutral-800 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 hover:shadow-[0_4px_24px_rgba(249,115,22,0.08)] hover:scale-[1.02] !p-0"
                   spotlightColor="rgba(249, 115, 22, 0.15)"
                 >
                   <Link to={`/barbeiros/${barber.id}`} className="block">
                     <div className="aspect-[4/3] bg-neutral-800 overflow-hidden relative">
-                       <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800"} alt={barber.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800"} alt={barber.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                     <div className="p-6">
-                       <h3 className="text-xl font-bold mb-2">{barber.name}</h3>
-                       <p className="text-neutral-400 text-sm mb-4">Especialista em cortes, barba e cuidados masculinos.</p>
-                       <div className="text-orange-500 font-medium text-sm flex items-center gap-2 group-hover:gap-3 transition-all">
-                          Agendar com este profissional <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
-                       </div>
+                      <h3 className="text-xl font-bold mb-2">{barber.name}</h3>
+                      <p className="text-neutral-400 text-sm mb-4">Especialista em cortes, barba e cuidados masculinos.</p>
+                      <div className="text-orange-500 font-medium text-sm flex items-center gap-2 group-hover:gap-3 transition-all">
+                        Agendar com este profissional <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+                      </div>
                     </div>
                   </Link>
                 </SpotlightCard>
-             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Packages */}
-      {featuredPackages.length > 0 && (
-      <section className="py-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">Nossos <span className="text-orange-500">Pacotes</span></h2>
-            <p className="text-neutral-400 text-lg max-w-2xl mx-auto">Garanta seu visual sempre em dia com nossos pacotes promocionais.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredPackages.map(pkg => (
-              <SpotlightCard key={pkg.id} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 hover:border-orange-500/50 transition-all group" spotlightColor="rgba(249, 115, 22, 0.15)">
-                 <h3 className="text-2xl font-bold mb-4">{pkg.name}</h3>
-                 <p className="text-neutral-400 mb-6 h-12">{pkg.description}</p>
-                 <div className="text-4xl font-bold text-orange-500 mb-6">R$ {pkg.price.toFixed(2)}</div>
-                 <div className="text-sm text-neutral-500 mb-8 border-t border-neutral-800 pt-4">
-                    Validade de {pkg.validityDays} dias
-                 </div>
-                 <Link to="/agendar" className="block w-full bg-neutral-800 group-hover:bg-orange-500 group-hover:text-white text-center text-white py-3 rounded-xl font-bold transition-colors">
-                    Adquirir Pacote
-                 </Link>
-              </SpotlightCard>
+              </AnimatedItem>
             ))}
-          </div>
+          </AnimatedContainer>
         </div>
-      </section>
+      </AnimatedSection>
+
+      <SectionTransition variant="subtle" />
+
+      {/* ── Nossos Pacotes ─────────────────────────────────────────────────── */}
+      {featuredPackages.length > 0 && (
+        <AnimatedSection className="py-20 px-4 bg-neutral-900/10">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              className="text-center mb-16"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">Nossos <span className="text-orange-500">Pacotes</span></h2>
+              <p className="text-neutral-400 text-lg max-w-2xl mx-auto">Garanta seu visual sempre em dia com nossos pacotes promocionais.</p>
+            </motion.div>
+            <AnimatedContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredPackages.map(pkg => (
+                <AnimatedItem key={pkg.id}>
+                  <SpotlightCard className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 hover:border-orange-500/50 transition-all duration-300 hover:shadow-[0_4px_24px_rgba(249,115,22,0.08)] hover:scale-[1.02] group" spotlightColor="rgba(249, 115, 22, 0.15)">
+                    <h3 className="text-2xl font-bold mb-4">{pkg.name}</h3>
+                    <p className="text-neutral-400 mb-6 h-12">{pkg.description}</p>
+                    <div className="text-4xl font-bold text-orange-500 mb-6">R$ {pkg.price.toFixed(2)}</div>
+                    <div className="text-sm text-neutral-500 mb-8 border-t border-neutral-800 pt-4">
+                      Validade de {pkg.validityDays} dias
+                    </div>
+                    <Link to="/agendar" className="block w-full bg-neutral-800 group-hover:bg-orange-500 group-hover:text-white text-center text-white py-3 rounded-xl font-bold transition-colors">
+                      Adquirir Pacote
+                    </Link>
+                  </SpotlightCard>
+                </AnimatedItem>
+              ))}
+            </AnimatedContainer>
+          </div>
+        </AnimatedSection>
       )}
 
-      {/* Meu Estilo Promo */}
-      <section className="py-20 px-4 relative overflow-hidden bg-neutral-900/10">
+      <SectionTransition variant="orangeGlow" />
+
+      {/* ── Meu Estilo Promo ───────────────────────────────────────────────── */}
+      <AnimatedSection className="py-20 px-4 relative overflow-hidden bg-neutral-900/10">
         <LineWaves
           speed={0.12}
           innerLineCount={18}
@@ -341,11 +382,11 @@ export function LandingPage() {
           mouseInfluence={1.0}
         />
         <motion.div 
-          initial={{ opacity: 0, y: 30 }} 
+          initial={{ opacity: 0, y: 28 }} 
           whileInView={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.8 }} 
-          viewport={{ once: true }} 
-          className="max-w-4xl mx-auto text-center"
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} 
+          viewport={{ once: true, amount: 0.2 }} 
+          className="max-w-4xl mx-auto text-center relative z-10"
         >
           <h2 className="text-3xl md:text-5xl font-bold mb-6">Seu estilo fica salvo. Seu próximo agendamento fica <span className="text-orange-500">mais rápido.</span></h2>
           <p className="text-lg text-neutral-400 max-w-2xl mx-auto mb-10">
@@ -355,70 +396,62 @@ export function LandingPage() {
                Acessar Meu Estilo
            </Link>
         </motion.div>
-      </section>
+      </AnimatedSection>
 
-      {/* Features */}
-      <section className="bg-neutral-900/30 py-20 px-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.8, staggerChildren: 0.2 }} 
-          viewport={{ once: true, margin: "-50px" }} 
-          className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8"
-        >
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}
-          >
-            <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
-              <Clock className="w-7 h-7" />
+      <SectionTransition variant="subtle" />
+
+      {/* ── Features (3 cards) ─────────────────────────────────────────────── */}
+      <AnimatedSection className="py-20 px-4">
+        <AnimatedContainer className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <AnimatedItem>
+            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 hover:shadow-[0_4px_24px_rgba(249,115,22,0.08)] transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}>
+              <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
+                <Clock className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Sem Filas</h3>
+              <p className="text-neutral-400 leading-relaxed">Atendimento com hora marcada. Chegue e seja atendido na hora.</p>
             </div>
-            <h3 className="text-xl font-bold mb-3">Sem Filas</h3>
-            <p className="text-neutral-400 leading-relaxed">Atendimento com hora marcada. Chegue e seja atendido na hora.</p>
-          </motion.div>
+          </AnimatedItem>
           
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}
-          >
-            <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
-              <Star className="w-7 h-7" />
+          <AnimatedItem>
+            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 hover:shadow-[0_4px_24px_rgba(249,115,22,0.08)] transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}>
+              <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
+                <Star className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Profissionais de Elite</h3>
+              <p className="text-neutral-400 leading-relaxed">Nossos barbeiros são especialistas nas técnicas mais modernas.</p>
             </div>
-            <h3 className="text-xl font-bold mb-3">Profissionais de Elite</h3>
-            <p className="text-neutral-400 leading-relaxed">Nossos barbeiros são especialistas nas técnicas mais modernas.</p>
-          </motion.div>
+          </AnimatedItem>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}
-          >
-            <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
-              <MapPin className="w-7 h-7" />
+          <AnimatedItem>
+            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-neutral-900/50 shadow-sm border border-neutral-800 hover:border-orange-500/50 hover:bg-neutral-900/80 hover:-translate-y-1 hover:shadow-[0_4px_24px_rgba(249,115,22,0.08)] transition-all duration-300 card-spotlight" onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(249, 115, 22, 0.15)'); }}>
+              <div className="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-6">
+                <MapPin className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Fácil Acesso</h3>
+              <p className="text-neutral-400 leading-relaxed">Localização central com estacionamento exclusivo para clientes.</p>
             </div>
-            <h3 className="text-xl font-bold mb-3">Fácil Acesso</h3>
-            <p className="text-neutral-400 leading-relaxed">Localização central com estacionamento exclusivo para clientes.</p>
-          </motion.div>
-        </motion.div>
-      </section>
+          </AnimatedItem>
+        </AnimatedContainer>
+      </AnimatedSection>
 
-      {/* Location Section */}
+      <SectionTransition variant="orangeGlow" />
+
+      {/* ── Location Section ───────────────────────────────────────────────── */}
       <LocationSection />
 
-      {/* Footer */}
-      <footer className="mt-auto py-8 border-t border-neutral-800">
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      <motion.footer
+        className="mt-auto py-8 border-t border-neutral-800"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.5 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="max-w-5xl mx-auto px-4 text-center text-neutral-500 text-sm">
           &copy; {new Date().getFullYear()} Barbearia Tony. Todos os direitos reservados.
         </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 }

@@ -27,9 +27,10 @@ export function LocationSection() {
       
       <div className="max-w-6xl mx-auto">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="text-center mb-16 relative z-10"
         >
           <h2 className="text-3xl md:text-5xl font-bold mb-4">Onde seu próximo estilo <span className="text-orange-500">começa</span></h2>
@@ -41,9 +42,10 @@ export function LocationSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-10 items-center">
           
           <motion.div 
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="lg:col-span-5 order-2 lg:order-1 flex flex-col gap-8"
           >
             <div className="bg-[#111] border border-neutral-800 p-8 rounded-3xl shadow-xl">
