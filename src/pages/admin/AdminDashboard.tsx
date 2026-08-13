@@ -42,8 +42,8 @@ export interface WaitlistEntry {
 }
 
 export function AdminDashboard() {
-  const [stats, setStats] = useState({ services: 0, barbers: 0, appointments: 0, expectedRevenue: 0, realizedRevenue: 0, avgTicket: 0, missingRate: 0, upsellRevenue: 0 });
-  const [prevStats, setPrevStats] = useState({ services: 0, barbers: 0, appointments: 0, expectedRevenue: 0, realizedRevenue: 0, avgTicket: 0, missingRate: 0, upsellRevenue: 0 });
+  const [stats, setStats] = useState({ services: 0, barbers: 0, appointments: 0, expectedRevenue: 0, realizedRevenue: 0, avgTicket: 0, missingRate: 0, upsellRevenue: 0, completedCount: 0 });
+  const [prevStats, setPrevStats] = useState({ services: 0, barbers: 0, appointments: 0, expectedRevenue: 0, realizedRevenue: 0, avgTicket: 0, missingRate: 0, upsellRevenue: 0, completedCount: 0 });
   const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month' | 'all'>('all');
   const [products, setProducts] = useState<Product[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -131,10 +131,10 @@ export function AdminDashboard() {
        let completedPaidCount = 0;
        let noShowCount = 0;
        let totalFinished = 0;
-       let upsellRevenue = 0;
+       let completedCount = 0;
 
        appts.forEach(app => {
-         const isPaid = app.paymentStatus === 'paid';
+         const isPaid = app.paymentStatus === 'paid' || app.status === 'completed';
          const isConfirmed = app.status === 'confirmed';
          const isCompleted = app.status === 'completed';
          const isNoShow = app.status === 'no_show';
@@ -142,6 +142,7 @@ export function AdminDashboard() {
 
          if (isCompleted || isNoShow) totalFinished++;
          if (isNoShow) noShowCount++;
+         if (isCompleted) completedCount++;
 
          if (isConfirmed) expectedRevenue += total;
          if (isPaid && (isCompleted || isNoShow)) {
@@ -162,6 +163,7 @@ export function AdminDashboard() {
          services: services.length,
          barbers: barbers.length,
          appointments: appts.length,
+         completedCount,
          expectedRevenue,
          realizedRevenue,
          avgTicket: completedPaidCount > 0 ? realizedRevenue / completedPaidCount : 0,
@@ -216,7 +218,7 @@ export function AdminDashboard() {
      // Note: we don't have barbers and services in AdminDashboard state directly unless we load them, but in the previous step the user didn't request adding them to AdminDashboard. Wait, they are requested to be shown in the UI "Profissional: [NOME]". But AdminDashboard currently doesn't fetch barbers/services in its list. Let's just use the ID or load them.
      // Actually, let's just make it generic if we don't have it, or fetch it.
      
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} — ${locationData.reference}\n${locationData.city} — ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} —  ${locationData.reference}\n${locationData.city} —  ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
      
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
@@ -271,7 +273,7 @@ export function AdminDashboard() {
   };
   
   const handleCopyMessage = (appt: Appointment) => {
-     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} — ${locationData.reference}\n${locationData.city} — ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
+     const address = locationData ? `${locationData.name}\n${locationData.street}, nº ${locationData.number} —  ${locationData.reference}\n${locationData.city} —  ${locationData.stateCode}\nCEP ${locationData.postalCode}` : 'Endereço não configurado';
      const baseUrl = (import.meta as any).env.VITE_APP_URL || window.location.origin;
      const link = `${baseUrl}/agendamento/gerenciar/${appt.id}`;
      
@@ -423,7 +425,8 @@ export function AdminDashboard() {
 
   const revenueData = last7Days.map(dayObj => {
     const dayAppts = appointments.filter(a => {
-      if (!(a.paymentStatus === 'paid' && (a.status === 'completed' || a.status === 'no_show'))) return false;
+      const isRealized = (a.paymentStatus === 'paid' || a.status === 'completed') && (a.status === 'completed' || a.status === 'no_show');
+      if (!isRealized) return false;
       const ad = new Date(a.startTime);
       return ad.getDate() === dayObj.day && ad.getMonth() === dayObj.month && ad.getFullYear() === dayObj.year;
     });
@@ -435,7 +438,8 @@ export function AdminDashboard() {
   const barberRevenueRecord: Record<string, number> = {};
 
   filteredAppointments.forEach(a => {
-     if(a.paymentStatus === 'paid' && (a.status === 'completed' || a.status === 'no_show')) {
+     const isRealized = (a.paymentStatus === 'paid' || a.status === 'completed') && (a.status === 'completed' || a.status === 'no_show');
+     if(isRealized) {
         serviceRevenueRecord[a.serviceId] = (serviceRevenueRecord[a.serviceId] || 0) + (a.totalPrice || 0);
         barberRevenueRecord[a.barberId] = (barberRevenueRecord[a.barberId] || 0) + (a.totalPrice || 0);
      }
@@ -545,12 +549,13 @@ export function AdminDashboard() {
             <motion.div variants={itemVariants} whileHover={{ scale: 1.02, borderColor: '#f97316', boxShadow: '0px 4px 20px rgba(249, 115, 22, 0.1)' }} className="bg-[#111] border border-neutral-800 p-6 rounded-2xl shadow-sm transition-colors duration-300">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center">
-                  <CalendarDays className="w-5 h-5" />
+                  <CheckCircle2 className="w-5 h-5" />
                 </div>
-                <p className="text-neutral-400 font-medium">Agendamentos</p>
+                <p className="text-neutral-400 font-medium text-sm">Serviços Realizados</p>
               </div>
-              <h2 className="text-3xl font-bold"><AnimatedNumber value={stats.appointments} /></h2>
-              <TrendIndicator current={stats.appointments} prev={prevStats.appointments} />
+              <h2 className="text-2xl font-bold"><AnimatedNumber value={stats.completedCount} /></h2>
+              <TrendIndicator current={stats.completedCount} prev={prevStats.completedCount} />
+              <p className="text-xs text-neutral-500 mt-2">Atendimentos concluídos</p>
             </motion.div>
           </motion.div>
           
