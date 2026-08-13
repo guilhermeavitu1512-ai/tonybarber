@@ -228,13 +228,15 @@ export function LandingPage() {
 
       {/* ── Hero Section ───────────────────────────────────────────────────── */}
       <section className="relative py-16 md:py-32 px-4 min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden">
-        {/* Aurora WebGL background */}
-        <Aurora
-          colorStops={['#f97316', '#c2410c', '#f97316']}
-          amplitude={1.2}
-          blend={0.6}
-          speed={0.8}
-        />
+        {/* Aurora WebGL background - Lower opacity and softer intensity */}
+        <div className="absolute inset-0 opacity-30 pointer-events-none z-0">
+          <Aurora
+            colorStops={['#f97316', '#c2410c', '#f97316']}
+            amplitude={0.8}
+            blend={1.0}
+            speed={1.0}
+          />
+        </div>
         <Particles />
         
         {/* Cinematic Orange Gradient Background */}
