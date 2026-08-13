@@ -7,6 +7,7 @@ import { Barber } from '../../types';
 import { Logo } from '../../components/Logo';
 import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
+import Aurora from '../../components/ui/Aurora';
 import SpotlightCard from '../../components/ui/SpotlightCard';
 import { BarberCardSkeleton } from '../../components/ui/SkeletonCard';
 import StrokeText from '../../components/ui/StrokeText';
@@ -226,7 +227,13 @@ export function LandingPage() {
 
       {/* ── Hero Section ───────────────────────────────────────────────────── */}
       <section className="relative py-16 md:py-32 px-4 min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden">
-
+        {/* Aurora WebGL background */}
+        <Aurora
+          colorStops={['#f97316', '#c2410c', '#f97316']}
+          amplitude={1.2}
+          blend={0.6}
+          speed={0.8}
+        />
         <Particles />
         
         {/* Cinematic Orange Gradient Background */}
