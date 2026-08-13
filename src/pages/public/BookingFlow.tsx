@@ -13,12 +13,12 @@ import { reserveProductsForAppointment } from '../../lib/inventoryLogic';
 import { useAuth } from '../../contexts/AuthContext';
 import { ChevronLeft, Scissors, Calendar as CalendarIcon, Clock, User, CheckCircle, MapPin, Navigation2, Copy, MessageCircle } from 'lucide-react';
 import { useSettings } from '../../lib/useSettings';
-import { collection, getDocs, query, where, addDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, doc, getDoc, runTransaction, updateDoc, serverTimestamp, or } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Service, Barber, Appointment, Block } from '../../types';
 import { generateAvailableSlots } from '../../lib/booking';
 
-import { format, addDays, startOfToday, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isBefore, isAfter, getDay, startOfDay } from 'date-fns';
+import { format, addDays, startOfToday, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isBefore, isAfter, getDay, startOfDay, parseISO, areIntervalsOverlapping } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -346,7 +346,7 @@ export function BookingFlow() {
         return;
       }
 
-      const { getDocs, query, collection, where } = await import('firebase/firestore');
+
       // Fetch all appointments for the barber. 
       const apptsSnap = await getDocs(query(collection(db, 'appointments'), where('barberId', '==', barber.id)));
       const blocksSnap = await getDocs(query(collection(db, 'blocks'), where('barberId', '==', barber.id)));
@@ -439,9 +439,6 @@ export function BookingFlow() {
     
     setLoading(true);
     try {
-      const { runTransaction, doc, collection, getDocs, query, where } = await import('firebase/firestore');
-      const { parseISO, areIntervalsOverlapping } = await import('date-fns');
-
       const targetBarberId = selectedBarberId;
       const appointmentStartTime = selectedSlot.toISOString();
       const appointmentEndTime = new Date(selectedSlot.getTime() + selectedService.durationMinutes * 60000).toISOString();
@@ -583,7 +580,7 @@ export function BookingFlow() {
       
       if (user) {
          try {
-            const { updateDoc } = await import("firebase/firestore");
+
             const profileSnap = await getDocs(query(collection(db, "client_profiles"), where("authUserId", "==", user.uid)));
             if (!profileSnap.empty) {
                const pDoc = profileSnap.docs[0];
@@ -1277,7 +1274,7 @@ export function BookingFlow() {
                  e.preventDefault();
                  setLoading(true);
                  try {
-                    const { collection, addDoc, serverTimestamp, query, where, getDocs } = await import('firebase/firestore');
+
                     
                     // Check duplicate
                     const q = query(collection(db, 'waitlist_entries'), 
@@ -1387,7 +1384,7 @@ export function BookingFlow() {
                      if (!findApptInput) return;
                      setFindApptStatus('loading');
                      try {
-                        const { getDocs, query, collection, where, or } = await import('firebase/firestore');
+
                         const q = query(collection(db, 'appointments'), or(where('customerPhone', '==', findApptInput), where('customerEmail', '==', findApptInput)));
                         const snap = await getDocs(q);
                         if (snap.empty) {
