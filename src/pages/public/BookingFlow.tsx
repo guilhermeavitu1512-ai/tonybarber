@@ -2,6 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { getSmartUpsellProducts } from '../../lib/upsellLogic';
 import { StepIndicator } from '../../components/ui/StepIndicator';
+import { ConfettiEffect } from '../../components/ui/ConfettiEffect';
+import { BarberRowSkeleton, ServiceRowSkeleton } from '../../components/ui/SkeletonCard';
+import { toast } from '../../components/ui/Toast';
 
 
 import { auth } from '../../lib/firebase';
@@ -604,7 +607,28 @@ export function BookingFlow() {
     }
   }
   if (loading && step === 1) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] text-white">Carregando...</div>;
+    return (
+      <div className="min-h-screen flex flex-col bg-[#0A0A0A] text-white">
+        <header className="border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-md sticky top-0 z-10">
+          <div className="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div className="w-11" />
+            <div className="text-lg font-bold tracking-tighter flex items-center gap-2">
+              <span className="text-orange-500">✂</span> Agendamento
+            </div>
+            <div className="w-11" />
+          </div>
+        </header>
+        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 sm:py-8">
+          <div className="mb-6"><StepIndicator currentStep={1} totalSteps={4} labels={['Profissional', 'Serviços', 'Horário', 'Dados']} /></div>
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6">
+            <div className="h-6 w-48 bg-neutral-800 rounded-lg mb-6 animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map(i => <BarberRowSkeleton key={i} />)}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -1109,6 +1133,7 @@ export function BookingFlow() {
           {/* STEP 5: SUCCESS */}
           {step === 5 && (
             <motion.div key="step5" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+              <ConfettiEffect />
               <div className="text-center py-12 animate-fade-in">
               <div className="w-20 h-20 bg-green-900/30 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-10 h-10" />

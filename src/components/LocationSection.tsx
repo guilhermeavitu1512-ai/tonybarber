@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Copy, Check, MessageCircle, Navigation2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useSettings } from '../lib/useSettings';
+import { toast } from './ui/Toast';
 
 export function LocationSection() {
   const [copied, setCopied] = useState(false);
@@ -16,7 +17,10 @@ export function LocationSection() {
   const handleCopy = () => {
     navigator.clipboard.writeText(fullAddress).then(() => {
       setCopied(true);
+      toast.success('Endereço copiado!');
       setTimeout(() => setCopied(false), 3000);
+    }).catch(() => {
+      toast.error('Não foi possível copiar o endereço.');
     });
   };
 

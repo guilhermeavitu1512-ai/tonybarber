@@ -9,12 +9,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
 import { LineWaves } from '../../components/ui/LineWaves';
 import SpotlightCard from '../../components/ui/SpotlightCard';
+import { BarberCardSkeleton } from '../../components/ui/SkeletonCard';
 import StrokeText from '../../components/ui/StrokeText';
 import { AnimatedSection } from '../../components/ui/AnimatedSection';
 import { AnimatedContainer } from '../../components/ui/AnimatedContainer';
 import { AnimatedItem } from '../../components/ui/AnimatedItem';
 import { SectionTransition } from '../../components/ui/SectionTransition';
 import { ScrollIndicator } from '../../components/ui/ScrollIndicator';
+
 
 function Particles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -335,7 +337,9 @@ export function LandingPage() {
           </motion.div>
           {/* Staggered barber cards */}
           <AnimatedContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {barbers.map(barber => (
+            {barbers.length === 0
+              ? [1, 2, 3].map(i => <BarberCardSkeleton key={i} />)
+              : barbers.map(barber => (
               <AnimatedItem key={barber.id}>
                 <SpotlightCard
                   className="group bg-neutral-900/50 border border-neutral-800 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 hover:shadow-[0_4px_24px_rgba(249,115,22,0.08)] hover:scale-[1.02] !p-0"
@@ -343,7 +347,14 @@ export function LandingPage() {
                 >
                   <Link to={`/barbeiros/${barber.id}`} className="block">
                     <div className="aspect-[4/3] bg-neutral-800 overflow-hidden relative">
-                      <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800"} alt={barber.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={barber.photoUrl || "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800"} alt={barber.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
+                      {/* Availability badge */}
+                      <div className="absolute top-3 left-3">
+                        <span className="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm text-green-400 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                          Disponível hoje
+                        </span>
+                      </div>
                     </div>
                     <div className="p-6">
                       <h3 className="text-xl font-bold mb-2">{barber.name}</h3>
