@@ -8,6 +8,7 @@ import { Logo } from '../../components/Logo';
 import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
 import Aurora from '../../components/ui/Aurora';
+import { LineWaves } from '../../components/ui/LineWaves';
 import SpotlightCard from '../../components/ui/SpotlightCard';
 import { BarberCardSkeleton } from '../../components/ui/SkeletonCard';
 import StrokeText from '../../components/ui/StrokeText';
