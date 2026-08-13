@@ -7,7 +7,6 @@ import { Barber } from '../../types';
 import { Logo } from '../../components/Logo';
 import { motion, AnimatePresence } from 'motion/react';
 import { LocationSection } from '../../components/LocationSection';
-import { LineWaves } from '../../components/ui/LineWaves';
 import SpotlightCard from '../../components/ui/SpotlightCard';
 import { BarberCardSkeleton } from '../../components/ui/SkeletonCard';
 import StrokeText from '../../components/ui/StrokeText';
@@ -227,21 +226,7 @@ export function LandingPage() {
 
       {/* ── Hero Section ───────────────────────────────────────────────────── */}
       <section className="relative py-16 md:py-32 px-4 min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden">
-        <LineWaves
-          speed={0.18}
-          innerLineCount={28}
-          outerLineCount={34}
-          warpIntensity={0.7}
-          rotation={-35}
-          edgeFadeWidth={0.15}
-          colorCycleSpeed={0.5}
-          brightness={0.08}
-          color1="#ff5a00"
-          color2="#ff7a00"
-          color3="#ff9a3c"
-          enableMouseInteraction
-          mouseInfluence={1.2}
-        />
+
         <Particles />
         
         {/* Cinematic Orange Gradient Background */}
