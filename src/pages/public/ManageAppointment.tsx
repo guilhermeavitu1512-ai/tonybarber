@@ -129,13 +129,19 @@ export function ManageAppointment() {
   const apptDate = new Date(appointment.startTime);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white p-6">
-      <div className="max-w-2xl mx-auto mt-12">
-        <Link to="/" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white mb-8 transition-colors">
-          <ChevronLeft className="w-5 h-5" /> Voltar
-        </Link>
-        
-        <h1 className="text-3xl font-bold mb-8">Gerenciar Agendamento</h1>
+    <div className="min-h-screen bg-[#0A0A0A] text-white pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      {/* Sticky back header */}
+      <header className="border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-md sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors min-h-[44px] min-w-[44px]" aria-label="Voltar">
+            <ChevronLeft className="w-5 h-5" />
+            <span className="hidden sm:inline text-sm font-medium">Voltar</span>
+          </Link>
+          <h1 className="text-base sm:text-lg font-bold">Gerenciar Agendamento</h1>
+        </div>
+      </header>
+
+      <div className="max-w-2xl mx-auto px-4 py-6 sm:py-10">
 
         <div className="bg-[#111] border border-neutral-800 rounded-2xl p-6 md:p-8 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -190,11 +196,12 @@ export function ManageAppointment() {
            </div>
 
            {(appointment.status === 'pending_confirmation' || appointment.status === 'confirmed') && (
-             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-neutral-800">
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8 pt-8 border-t border-neutral-800">
                 <button
                    onClick={handleConfirmPresence}
                    disabled={actionLoading || appointment.status === 'confirmed'}
                    className="flex flex-col items-center justify-center p-4 rounded-xl border border-neutral-800 bg-neutral-900/50 hover:bg-green-500/10 hover:border-green-500/30 hover:text-green-500 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                   style={{ minHeight: 72 }}
                  >
                      <CheckCircle className="w-6 h-6 mb-2" />
                      <span className="text-sm font-medium">Confirmar Presença</span>
@@ -204,6 +211,7 @@ export function ManageAppointment() {
                   onClick={handleOnTheWay}
                   disabled={actionLoading}
                   className="flex flex-col items-center justify-center p-4 rounded-xl border border-neutral-800 bg-neutral-900/50 hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  style={{ minHeight: 72 }}
                 >
                   <User className="w-6 h-6 mb-2" />
                   <span className="text-sm font-medium">Estou a caminho</span>
@@ -212,6 +220,7 @@ export function ManageAppointment() {
                 <Link 
                   to={`/agendar?reschedule=${appointment.id}`}
                   className="flex flex-col items-center justify-center p-4 rounded-xl border border-neutral-800 bg-neutral-900/50 hover:bg-orange-500/10 hover:border-orange-500/30 hover:text-orange-500 transition-colors"
+                  style={{ minHeight: 72 }}
                 >
                   <Clock className="w-6 h-6 mb-2" />
                   <span className="text-sm font-medium">Reagendar</span>
@@ -221,6 +230,7 @@ export function ManageAppointment() {
                   onClick={handleCancel}
                   disabled={actionLoading}
                   className="flex flex-col items-center justify-center p-4 rounded-xl border border-neutral-800 bg-neutral-900/50 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-500 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  style={{ minHeight: 72 }}
                 >
                   <XCircle className="w-6 h-6 mb-2" />
                   <span className="text-sm font-medium">Cancelar</span>

@@ -180,7 +180,13 @@ export function BookingFlow() {
 
   const [showWaitlistForm, setShowWaitlistForm] = useState(false);
   const [waitlistTimePref, setWaitlistTimePref] = useState('Qualquer horário');
-  const [customer, setCustomer] = useState({ name: '', phone: '', email: '' });
+  const [customer, setCustomer] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tonybarber_customer');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { name: '', phone: '', email: '' };
+  });
   const [createdAppointmentId, setCreatedAppointmentId] = useState<string | null>(null);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
@@ -590,6 +596,8 @@ export function BookingFlow() {
             console.error("Error updating preferences", e);
          }
       }
+      // Persist for next visit
+      try { localStorage.setItem('tonybarber_customer', JSON.stringify(customer)); } catch {}
       setStep(5);
     } catch (err: any) {
       console.error("Error saving appointment:", err);
@@ -1067,8 +1075,11 @@ export function BookingFlow() {
                     type="text" 
                     value={customer.name}
                     onChange={e => setCustomer({...customer, name: e.target.value})}
-                    className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900/50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900/50 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
                     placeholder="Seu nome"
+                    autoComplete="name"
+                    autoCorrect="off"
+                    spellCheck={false}
                   />
                 </div>
                 <div>
@@ -1078,8 +1089,10 @@ export function BookingFlow() {
                     type="tel" 
                     value={customer.phone}
                     onChange={e => setCustomer({...customer, phone: e.target.value})}
-                    className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900/50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900/50 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
                     placeholder="(11) 99999-9999"
+                    autoComplete="tel"
+                    inputMode="tel"
                   />
                 </div>
 
@@ -1089,8 +1102,10 @@ export function BookingFlow() {
                     type="email" 
                     value={customer.email}
                     onChange={e => setCustomer({...customer, email: e.target.value})}
-                    className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900/50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full p-3 rounded-xl border border-neutral-800 bg-neutral-900/50 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
                     placeholder="seu@email.com"
+                    autoComplete="email"
+                    inputMode="email"
                   />
                 </div>
                 
@@ -1098,7 +1113,8 @@ export function BookingFlow() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
+                    className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white px-8 rounded-xl font-bold transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
+                    style={{ minHeight: 52, fontSize: 16 }}
                   >
                     {loading ? 'Confirmando...' : (repeatApptId ? 'Confirmar meu corte de sempre' : 'Confirmar Agendamento')}
                   </button>

@@ -245,13 +245,13 @@ export function MeuEstilo() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       {/* Header */}
-      <header className="border-b border-neutral-800 sticky top-0 z-10 bg-[#0A0A0A]/90 backdrop-blur-md">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
+      <header className="border-b border-neutral-800 sticky top-0 z-10 bg-[#0A0A0A]/95 backdrop-blur-md">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Logo className="w-8 h-8" />
             <span className="font-bold text-lg hidden sm:inline">Meu Estilo</span>
           </div>
-          <Link to="/agendar" className="text-sm font-medium text-orange-500 hover:text-orange-400 transition-colors">
+          <Link to="/agendar" className="flex items-center text-sm font-medium text-orange-500 hover:text-orange-400 transition-colors min-h-[44px] px-1">
             Novo Agendamento
           </Link>
         </div>
@@ -277,7 +277,7 @@ export function MeuEstilo() {
                 Acesse seu histórico, barbeiro preferido e agende seu corte habitual com um clique.
               </p>
 
-              <div className="w-full max-w-md bg-[#111] border border-neutral-800 rounded-3xl p-8 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
+              <div className="w-full max-w-md bg-[#111] border border-neutral-800 rounded-3xl p-5 sm:p-8 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                 <form onSubmit={handleSearch} className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-neutral-400 mb-2">
@@ -291,10 +291,11 @@ export function MeuEstilo() {
                         type="text"
                         value={contact}
                         onChange={e => setContact(e.target.value)}
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-orange-500 transition-colors placeholder-neutral-600"
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-orange-500 transition-colors placeholder-neutral-600 text-base"
                         placeholder="exemplo@email.com ou (11) 99999-9999"
                         required
                         autoComplete="email"
+                        inputMode={isEmail(contact) ? 'email' : 'tel'}
                       />
                     </div>
                     <p className="text-xs text-neutral-600 mt-2">
@@ -313,7 +314,8 @@ export function MeuEstilo() {
                     <button
                       type="submit"
                       disabled={!contact.trim()}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
+                      className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white px-8 rounded-xl font-bold transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:pointer-events-none"
+                      style={{ minHeight: 52, fontSize: 16 }}
                     >
                       <span className="flex items-center gap-2 justify-center">
                         <Search className="w-4 h-4" />
@@ -324,8 +326,8 @@ export function MeuEstilo() {
                 </form>
               </div>
 
-              <div className="mt-8">
-                <Link to="/" className="text-neutral-600 hover:text-neutral-400 transition-colors text-sm">
+              <div className="mt-6">
+                <Link to="/" className="inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-400 transition-colors text-sm min-h-[44px]">
                   ← Voltar para o início
                 </Link>
               </div>

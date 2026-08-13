@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Barber, Service } from '../../types';
-import { Scissors, Star, MapPin, ChevronLeft, Loader2, ArrowRight } from 'lucide-react';
+import { Scissors, Star, MapPin, ChevronLeft, Loader2, ArrowRight, Share2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 
@@ -68,11 +68,24 @@ export function BarberProfile() {
       <div className="h-48 sm:h-64 md:h-80 w-full bg-neutral-900 relative overflow-hidden">
          <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=2074" alt="Barbershop" className="w-full h-full object-cover opacity-40" />
          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] to-transparent"></div>
+         {/* Back button */}
          <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
             <Link to="/" className="flex items-center justify-center w-11 h-11 bg-black/60 backdrop-blur-md rounded-full hover:bg-black/80 transition-colors" aria-label="Voltar">
                <ChevronLeft className="w-6 h-6" />
             </Link>
          </div>
+         {/* Share button (Web Share API — mobile only) */}
+         {typeof navigator !== 'undefined' && 'share' in navigator && (
+           <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+             <button
+               onClick={() => navigator.share({ title: barber.name, text: `Agende com ${barber.name} na Barbearia Tony!`, url: window.location.href })}
+               className="flex items-center justify-center w-11 h-11 bg-black/60 backdrop-blur-md rounded-full hover:bg-black/80 transition-colors"
+               aria-label="Compartilhar perfil"
+             >
+               <Share2 className="w-5 h-5" />
+             </button>
+           </div>
+         )}
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-16 sm:-mt-20 relative z-10">
