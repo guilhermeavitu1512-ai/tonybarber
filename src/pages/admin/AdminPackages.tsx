@@ -104,9 +104,9 @@ export function AdminPackages() {
         alert("Pacote criado com sucesso.");
       }
       setIsModalOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Não foi possível salvar o pacote. Tente novamente.");
+      alert("Não foi possível salvar o pacote. Erro: " + (err.message || String(err)));
     }
   };
 

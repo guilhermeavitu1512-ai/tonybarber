@@ -71,9 +71,9 @@ export function AdminBarbers() {
        
        await updateDoc(doc(db, 'barbers', barber.id), { photoUrl: url });
        loadData();
-    } catch(err) {
+    } catch(err: any) {
        console.error(err);
-       alert("Erro ao enviar foto de perfil");
+       alert("Erro ao enviar foto de perfil: " + (err.message || String(err)));
     } finally {
        setUploadingState(prev => ({...prev, [barber.id + '_profile']: false}));
     }
