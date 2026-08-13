@@ -69,18 +69,18 @@ struct ColorStop {
   float position;
 };
 
-#define COLOR_RAMP(colors, factor, finalColor) {              \\
-  int index = 0;                                             \\
-  for (int i = 0; i < 2; i++) {                              \\
-     ColorStop currentColor = colors[i];                     \\
-     bool isInBetween = currentColor.position <= factor;     \\
-     index = int(mix(float(index), float(i), float(isInBetween))); \\
-  }                                                          \\
-  ColorStop currentColor = colors[index];                    \\
-  ColorStop nextColor = colors[index + 1];                   \\
-  float range = nextColor.position - currentColor.position;  \\
-  float lerpFactor = (factor - currentColor.position) / range; \\
-  finalColor = mix(currentColor.color, nextColor.color, lerpFactor); \\
+#define COLOR_RAMP(colors, factor, finalColor) {              \
+  int index = 0;                                             \
+  for (int i = 0; i < 2; i++) {                              \
+     ColorStop currentColor = colors[i];                     \
+     bool isInBetween = currentColor.position <= factor;     \
+     index = int(mix(float(index), float(i), float(isInBetween))); \
+  }                                                          \
+  ColorStop currentColor = colors[index];                    \
+  ColorStop nextColor = colors[index + 1];                   \
+  float range = nextColor.position - currentColor.position;  \
+  float lerpFactor = (factor - currentColor.position) / range; \
+  finalColor = mix(currentColor.color, nextColor.color, lerpFactor); \
 }
 
 void main() {
@@ -113,11 +113,10 @@ interface AuroraProps {
   amplitude?: number;
   blend?: number;
   speed?: number;
-  time?: number;
 }
 
 export default function Aurora({
-  colorStops = ['#f97316', '#ea580c', '#f97316'],
+  colorStops = ['#f97316', '#c2410c', '#f97316'],
   amplitude = 1.0,
   blend = 0.5,
   speed = 1.0,
@@ -131,81 +130,84 @@ export default function Aurora({
     const ctn = ctnDom.current;
     if (!ctn) return;
 
-    const renderer = new Renderer({
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: true,
-    });
-    const gl = renderer.gl;
-    gl.clearColor(0, 0, 0, 0);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    gl.canvas.style.backgroundColor = 'transparent';
-
-    let program: Program;
-
-    function resize() {
-      if (!ctn) return;
-      const width = ctn.offsetWidth;
-      const height = ctn.offsetHeight;
-      renderer.setSize(width, height);
-      if (program) {
-        program.uniforms.uResolution.value = [width, height];
-      }
-    }
-    window.addEventListener('resize', resize);
-
-    const geometry = new Triangle(gl);
-    if ((geometry.attributes as any).uv) {
-      delete (geometry.attributes as any).uv;
-    }
-
-    const colorStopsArray = colorStops.map(hex => {
-      const c = new Color(hex);
-      return [c.r, c.g, c.b];
-    });
-
-    program = new Program(gl, {
-      vertex: VERT,
-      fragment: FRAG,
-      uniforms: {
-        uTime:       { value: 0 },
-        uAmplitude:  { value: amplitude },
-        uColorStops: { value: colorStopsArray },
-        uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
-        uBlend:      { value: blend },
-      },
-    });
-
-    const mesh = new Mesh(gl, { geometry, program });
-    ctn.appendChild(gl.canvas);
-
+    let renderer: Renderer;
     let animateId = 0;
-    const update = (t: number) => {
-      animateId = requestAnimationFrame(update);
-      const { speed: s = 1.0 } = propsRef.current;
-      program.uniforms.uTime.value = t * 0.001 * s * 0.1;
-      program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
-      program.uniforms.uBlend.value = propsRef.current.blend ?? 0.5;
-      const stops = propsRef.current.colorStops ?? colorStops;
-      program.uniforms.uColorStops.value = stops.map(hex => {
-        const c = new Color(hex);
-        return [c.r, c.g, c.b];
-      });
-      renderer.render({ scene: mesh });
-    };
-    animateId = requestAnimationFrame(update);
-    resize();
 
-    return () => {
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: true,
+      });
+
+      const gl = renderer.gl;
+      gl.clearColor(0, 0, 0, 0);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+      // Force pointer-events none on canvas itself
+      gl.canvas.style.pointerEvents = 'none';
+      gl.canvas.style.position = 'absolute';
+      gl.canvas.style.inset = '0';
+      gl.canvas.style.width = '100%';
+      gl.canvas.style.height = '100%';
+
+      let program: Program;
+
+      const resize = () => {
+        if (!ctn) return;
+        const w = ctn.offsetWidth;
+        const h = ctn.offsetHeight;
+        renderer.setSize(w, h);
+        if (program) program.uniforms.uResolution.value = [w, h];
+      };
+
+      window.addEventListener('resize', resize);
+
+      const geometry = new Triangle(gl);
+
+      const toStops = (stops: string[]) =>
+        stops.map(hex => { const c = new Color(hex); return [c.r, c.g, c.b]; });
+
+      program = new Program(gl, {
+        vertex: VERT,
+        fragment: FRAG,
+        uniforms: {
+          uTime:       { value: 0 },
+          uAmplitude:  { value: amplitude },
+          uColorStops: { value: toStops(colorStops) },
+          uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
+          uBlend:      { value: blend },
+        },
+      });
+
+      const mesh = new Mesh(gl, { geometry, program });
+      ctn.appendChild(gl.canvas);
+      resize();
+
+      const update = (t: number) => {
+        animateId = requestAnimationFrame(update);
+        const p = propsRef.current;
+        program.uniforms.uTime.value      = t * 0.001 * (p.speed ?? 1.0) * 0.1;
+        program.uniforms.uAmplitude.value = p.amplitude ?? 1.0;
+        program.uniforms.uBlend.value     = p.blend ?? 0.5;
+        program.uniforms.uColorStops.value = toStops(p.colorStops ?? colorStops);
+        renderer.render({ scene: mesh });
+      };
+      animateId = requestAnimationFrame(update);
+
+      return () => {
+        cancelAnimationFrame(animateId);
+        window.removeEventListener('resize', resize);
+        if (ctn && gl.canvas.parentNode === ctn) ctn.removeChild(gl.canvas);
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      };
+    } catch (e) {
+      // WebGL not available or shader error — fail silently, don't crash the app
+      console.warn('[Aurora] WebGL init failed:', e);
       cancelAnimationFrame(animateId);
-      window.removeEventListener('resize', resize);
-      if (ctn && gl.canvas.parentNode === ctn) {
-        ctn.removeChild(gl.canvas);
-      }
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <div ref={ctnDom} className="aurora-container" />;
