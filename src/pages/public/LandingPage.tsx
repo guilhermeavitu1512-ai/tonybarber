@@ -230,7 +230,7 @@ export function LandingPage() {
       <section className="relative py-16 md:py-32 px-4 min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden">
         {/* Aurora WebGL background - Lower opacity and softer intensity */}
         <div 
-          className="absolute top-0 left-0 w-full h-[55vh] md:h-full opacity-40 pointer-events-none z-0"
+          className="absolute top-0 left-0 w-full h-[35vh] md:h-full opacity-40 pointer-events-none z-0"
           style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)' }}
         >
           <Aurora
@@ -247,7 +247,7 @@ export function LandingPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 2 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-orange-500/10 blur-[120px] md:blur-[150px] rounded-full pointer-events-none z-0"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-orange-500/5 blur-[120px] md:blur-[150px] rounded-full pointer-events-none z-0"
         />
 
         {/* Bottom fade to next section */}
