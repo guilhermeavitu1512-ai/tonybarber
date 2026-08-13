@@ -132,6 +132,7 @@ export function AdminDashboard() {
        let noShowCount = 0;
        let totalFinished = 0;
        let completedCount = 0;
+       let upsellRevenue = 0;
 
        appts.forEach(app => {
          const isPaid = app.paymentStatus === 'paid' || app.status === 'completed';
