@@ -605,7 +605,7 @@ export function BookingFlow() {
       } else if (err.message && err.message.startsWith("OUT_OF_STOCK")) {
          alert("Um ou mais produtos selecionados não estão mais disponíveis no estoque.");
       } else {
-         alert("Não foi possível confirmar agora. Tente novamente.");
+         alert("Não foi possível confirmar agora. Tente novamente. Erro: " + (err.message || err.toString()));
       }
     } finally {
       setLoading(false);
