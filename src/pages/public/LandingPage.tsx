@@ -229,7 +229,7 @@ export function LandingPage() {
       {/* ── Hero Section ───────────────────────────────────────────────────── */}
       <section className="relative py-16 md:py-32 px-4 min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden">
         {/* Aurora WebGL background - Lower opacity and softer intensity */}
-        <div className="absolute inset-0 opacity-30 pointer-events-none z-0">
+        <div className="absolute inset-0 opacity-40 pointer-events-none z-0">
           <Aurora
             colorStops={['#f97316', '#c2410c', '#f97316']}
             amplitude={0.8}
