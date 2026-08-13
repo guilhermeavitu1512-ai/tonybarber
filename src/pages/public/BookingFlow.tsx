@@ -745,16 +745,16 @@ export function BookingFlow() {
               )}
 
               {selectedService && (
-                <section ref={upsellRef} aria-labelledby="upsell-title" className="mt-8 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-6 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
+                <section ref={upsellRef} aria-labelledby="upsell-title" className="mt-6 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-4 sm:p-6 card-spotlight" onMouseMove={(e: any) => { const rect = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); e.currentTarget.style.setProperty('--spotlight-color', 'rgba(255, 255, 255, 0.08)'); }}>
                   <div className="mb-4">
                     {repeatApptId && selectedProducts.length > 0 && (
                       <div className="mb-4 bg-orange-500/10 border border-orange-500/30 text-orange-500 p-4 rounded-xl text-sm">
                         Incluímos os produtos do seu último atendimento. Você pode remover ou adicionar itens antes de continuar.
                       </div>
                     )}
-                    <h3 id="upsell-title" className="text-xl font-bold text-white">Complete seu cuidado em casa</h3>
-                    <p className="text-sm text-neutral-400 mt-1">
-                      Recomendado com base no seu serviço e nas suas escolhas anteriores. A compra é opcional e o pagamento é realizado presencialmente.
+                    <h3 id="upsell-title" className="text-base sm:text-xl font-bold text-white">Complete seu cuidado em casa</h3>
+                    <p className="text-xs sm:text-sm text-neutral-400 mt-1 leading-snug">
+                      Recomendado com base no seu serviço. A compra é opcional e o pagamento é presencial.
                     </p>
                   </div>
 
@@ -794,14 +794,14 @@ export function BookingFlow() {
                                   continueBtnRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }, 200);
                               }}
-                              className={`w-full text-left p-4 rounded-xl border transition-all duration-300 flex justify-between items-center group ${isOutOfStock ? 'opacity-50 cursor-not-allowed border-neutral-800 bg-neutral-900/20' : isSelected ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/10 scale-[1.02] cursor-pointer' : 'border-neutral-800 hover:border-orange-500 bg-neutral-900/50 hover:scale-[1.01] cursor-pointer'}`}
+                              className={`w-full text-left p-3 sm:p-4 rounded-xl border transition-all duration-300 flex justify-between items-center group ${isOutOfStock ? 'opacity-50 cursor-not-allowed border-neutral-800 bg-neutral-900/20' : isSelected ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/10 scale-[1.01] cursor-pointer' : 'border-neutral-800 hover:border-orange-500 bg-neutral-900/50 hover:scale-[1.005] cursor-pointer'}`}
                             >
                               <div>
                                 <div className="flex items-center gap-2">
                                   <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-orange-500 border-orange-500 text-white' : 'border-neutral-600 group-hover:border-orange-500'}`}>
                                     {isSelected && <CheckCircle className="w-3 h-3" />}
                                   </div>
-                                  <h4 className={`font-bold transition-colors ${isSelected ? 'text-orange-500' : 'group-hover:text-orange-500'}`}>{product.name}</h4>
+                                  <h4 className={`text-sm sm:text-base font-bold transition-colors ${isSelected ? 'text-orange-500' : 'group-hover:text-orange-500'}`}>{product.name}</h4>
                                 </div>
                                 {product.label && (
                                   <div className="mt-2 ml-7">
@@ -811,11 +811,11 @@ export function BookingFlow() {
                                   </div>
                                 )}
                                 {product.description && product.description !== '—' && (
-                                  <p className="text-sm text-neutral-500 line-clamp-2 mt-2 ml-7">{product.description}</p>
+                                  <p className="text-xs text-neutral-500 line-clamp-1 mt-1 ml-7">{product.description}</p>
                                 )}
                               </div>
-                              <div className="text-right ml-4 flex flex-col items-end shrink-0 gap-1">
-                                <div className="font-bold text-lg">
+                              <div className="text-right ml-3 flex flex-col items-end shrink-0 gap-1">
+                                <div className="font-bold text-sm sm:text-base">
                                   R$ {Number(product.price).toFixed(2)}
                                 </div>
                                 {isOutOfStock && <span className="text-xs text-red-500 font-medium">Indisponível</span>}
